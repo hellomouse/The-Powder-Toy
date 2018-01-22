@@ -271,7 +271,7 @@ bool Simulation::TypeInCtype(int el)
 	        el == PT_STOR || el == PT_CONV || el == PT_STKM || el == PT_STKM2 ||
 	        el == PT_FIGH || el == PT_LAVA || el == PT_SPRK || el == PT_PSTN ||
 	        el == PT_CRAY || el == PT_DTEC || el == PT_DRAY || el == PT_PIPE ||
-	        el == PT_PPIP;
+	        el == PT_PPIP || el == PT_RAYT;
 }
 
 bool Simulation::TypeInTmp(int el)
@@ -318,7 +318,7 @@ GameSave * Simulation::Save(int fullX, int fullY, int fullX2, int fullY2, bool i
 	blockH = blockY2-blockY;
 
 	GameSave * newSave = new GameSave(blockW, blockH);
-	
+
 	int storedParts = 0;
 	int elementCount[PT_NUM];
 	std::fill(elementCount, elementCount+PT_NUM, 0);
@@ -383,7 +383,7 @@ GameSave * Simulation::Save(int fullX, int fullY, int fullX2, int fullY2, bool i
 			}
 		}
 	}
-	
+
 	for (size_t i = 0; i < MAXSIGNS && i < signs.size(); i++)
 	{
 		if(signs[i].text.length() && signs[i].x >= fullX && signs[i].y >= fullY && signs[i].x <= fullX2 && signs[i].y <= fullY2)
@@ -394,7 +394,7 @@ GameSave * Simulation::Save(int fullX, int fullY, int fullX2, int fullY2, bool i
 			*newSave << tempSign;
 		}
 	}
-	
+
 	for(int saveBlockX = 0; saveBlockX < newSave->blockWidth; saveBlockX++)
 	{
 		for(int saveBlockY = 0; saveBlockY < newSave->blockHeight; saveBlockY++)
@@ -577,16 +577,16 @@ int Simulation::flood_prop(int x, int y, size_t propoffset, PropertyValue propva
 					case StructProperty::Float:
 						*((float*)(((char*)&parts[ID(i)])+propoffset)) = propvalue.Float;
 						break;
-						
+
 					case StructProperty::ParticleType:
 					case StructProperty::Integer:
 						*((int*)(((char*)&parts[ID(i)])+propoffset)) = propvalue.Integer;
 						break;
-						
+
 					case StructProperty::UInteger:
 						*((unsigned int*)(((char*)&parts[ID(i)])+propoffset)) = propvalue.UInteger;
 						break;
-						
+
 					default:
 						break;
 				}
@@ -1298,7 +1298,7 @@ int Simulation::CreateWalls(int x, int y, int rx, int ry, int wall, Brush * cBru
 		rx = cBrush->GetRadius().X;
 		ry = cBrush->GetRadius().Y;
 	}
-	
+
 	ry = ry/CELL;
 	rx = rx/CELL;
 	x = x/CELL;
@@ -1438,10 +1438,10 @@ int Simulation::FloodWalls(int x, int y, int wall, int bm)
 		else
 			bm = 0;
 	}
-	
+
 	if (bmap[y/CELL][x/CELL]!=bm)
 		return 1;
-	
+
 	// go left as far as possible
 	x1 = x2 = x;
 	while (x1>=CELL)
@@ -1460,7 +1460,7 @@ int Simulation::FloodWalls(int x, int y, int wall, int bm)
 		}
 		x2++;
 	}
-	
+
 	// fill span
 	for (x=x1; x<=x2; x++)
 	{
@@ -1509,7 +1509,7 @@ int Simulation::CreateParts(int positionX, int positionY, int c, Brush * cBrush,
 				newtmp = 300;
 			c = PMAP(newtmp, c);
 		}
-		
+
 		for (int y = sizeY-1; y >=0; y--)
 		{
 			for (int x = 0; x < sizeX; x++)
@@ -1728,7 +1728,7 @@ int Simulation::FloodParts(int x, int y, int fullc, int cm, int flags)
 	unsigned short (*coord_stack)[2];
 	int coord_stack_size = 0;
 	int created_something = 0;
-	
+
 	if (cm==-1)
 	{
 		//if initial flood point is out of bounds, do nothing
@@ -2141,7 +2141,7 @@ void Simulation::init_can_move()
 	//  1 = Swap
 	//  2 = Both particles occupy the same space.
 	//  3 = Varies, go run some extra checks
-	
+
 	//particles that don't exist shouldn't move...
 	for (destinationType = 0; destinationType < PT_NUM; destinationType++)
 		can_move[0][destinationType] = 0;
@@ -2503,7 +2503,7 @@ int Simulation::try_move(int i, int x, int y, int nx, int ny)
 					part_change_type(i, x, y, PT_PROT);
 					parts[i].ctype = 0;
 					parts[i].tmp2 = 0x1;
-	
+
 					create_part(ID(r), x, y, PT_ELEC);
 					return 1;
 				}
@@ -3440,7 +3440,7 @@ int Simulation::create_part(int p, int x, int y, int t, int v)
 	case PT_LIGH:
 	{
 		float gx, gy, gsize;
-		
+
 		if (v >= 0)
 		{
 			if (v > 55)
@@ -5445,7 +5445,7 @@ Simulation::Simulation():
 		else
 			elements[i] = Element();
 	}
-	
+
 	tools = GetTools();
 
 	int golRulesCount;
