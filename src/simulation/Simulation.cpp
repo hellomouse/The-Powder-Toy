@@ -338,7 +338,7 @@ GameSave * Simulation::Save(int fullX, int fullY, int fullX2, int fullY2, bool i
 	if (storedParts)
 	{
 		for (int ID : paletteSet)
-			newSave->palette.push_back(GameSave::PaletteItem(elements[ID].Identifier, ID));
+			newSave->palette.emplace_back(GameSave::PaletteItem(elements[ID].Identifier, ID));
 
 		// fix SOAP links using soapList, a map of new particle ID -> old particle ID
 		// loop through every new particle (saved into the save), and convert .tmp / .tmp2
