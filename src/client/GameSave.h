@@ -19,28 +19,28 @@ struct ParseException: public std::exception {
 	ParseResult result;
 public:
 	ParseException(ParseResult result, std::string message_): message(message_), result(result) {}
-	const char * what() const throw()
+	const char * what() const throw() override
 	{
 		return message.c_str();
 	}
-	~ParseException() throw() {}
+	~ParseException() throw() override {}
 };
 
 struct BuildException: public std::exception {
 	std::string message;
 public:
 	BuildException(std::string message_): message(message_) {}
-	const char * what() const throw()
+	const char * what() const throw() override
 	{
 		return message.c_str();
 	}
-	~BuildException() throw() {}
+	~BuildException() throw() override {}
 };
 
 class GameSave
 {
 public:
-	
+
 	int blockWidth, blockHeight;
 	bool fromNewerVersion;
 	bool hasPressure;
@@ -57,7 +57,7 @@ public:
 	float ** velocityX;
 	float ** velocityY;
 	float ** ambientHeat;
-	
+
 	//Simulation Options
 	bool waterEEnabled;
 	bool legacyEnable;
@@ -67,7 +67,7 @@ public:
 	int gravityMode;
 	int airMode;
 	int edgeMode;
-	
+
 	//Signs
 	std::vector<sign> signs;
 
@@ -110,14 +110,14 @@ public:
 		}
 		return *this;
 	}
-	
+
 	inline GameSave& operator << (sign v)
 	{
 		if(signs.size()<MAXSIGNS && v.text.length())
 			signs.push_back(v);
 		return *this;
 	}
-		
+
 private:
 	bool expanded;
 	bool hasOriginalData;
