@@ -1325,7 +1325,7 @@ void GameSave::readPSv(char * saveDataChar, int dataLength)
 
 	if (ver<34)
 	{
-		legacyEnable = 1;
+		legacyEnable = true;
 	}
 	else
 	{
