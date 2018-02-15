@@ -145,14 +145,14 @@ GameSave::GameSave(char * data, int dataSize)
 // Called on every new GameSave, including the copy constructor
 void GameSave::InitData()
 {
-	blockMap = NULL;
-	fanVelX = NULL;
-	fanVelY = NULL;
-	particles = NULL;
-	pressure = NULL;
-	velocityX = NULL;
-	velocityY = NULL;
-	ambientHeat = NULL;
+	blockMap = nullptr;
+	fanVelX = nullptr;
+	fanVelY = nullptr;
+	particles = nullptr;
+	pressure = nullptr;
+	velocityX = nullptr;
+	velocityY = nullptr;
+	ambientHeat = nullptr;
 	fromNewerVersion = false;
 	hasPressure = false;
 	hasAmbientHeat = false;
@@ -258,7 +258,7 @@ std::vector<char> GameSave::Serialise()
 {
 	unsigned int dataSize;
 	char * data = Serialise(dataSize);
-	if (data == NULL)
+	if (data == nullptr)
 		return std::vector<char>();
 	std::vector<char> dataVect(data, data+dataSize);
 	delete[] data;
@@ -274,7 +274,7 @@ char * GameSave::Serialise(unsigned int & dataSize)
 	catch (BuildException e)
 	{
 		std::cout << e.what() << std::endl;
-		return NULL;
+		return nullptr;
 	}
 }
 
@@ -560,8 +560,8 @@ void GameSave::CheckBsonFieldInt(bson_iterator iter, const char *field, int *set
 
 void GameSave::readOPS(char * data, int dataLength)
 {
-	unsigned char *inputData = (unsigned char*)data, *bsonData = NULL, *partsData = NULL, *partsPosData = NULL, *fanData = NULL, *wallData = NULL, *soapLinkData = NULL;
-	unsigned char *pressData = NULL, *vxData = NULL, *vyData = NULL, *ambientData = NULL;
+	unsigned char *inputData = (unsigned char*)data, *bsonData = nullptr, *partsData = nullptr, *partsPosData = nullptr, *fanData = nullptr, *wallData = nullptr, *soapLinkData = nullptr;
+	unsigned char *pressData = nullptr, *vxData = nullptr, *vyData = nullptr, *ambientData = nullptr;
 	unsigned int inputDataLen = dataLength, bsonDataLen = 0, partsDataLen, partsPosDataLen, fanDataLen, wallDataLen, soapLinkDataLen;
 	unsigned int pressDataLen, vxDataLen, vyDataLen, ambientDataLen;
 	unsigned partsCount = 0;
@@ -570,7 +570,7 @@ void GameSave::readOPS(char * data, int dataLength)
 	bool fakeNewerVersion = false; // used for development builds only
 
 	bson b;
-	b.data = NULL;
+	b.data = nullptr;
 	bson_iterator iter;
 	auto bson_deleter = [](bson * b) { bson_destroy(b); };
 	// Use unique_ptr with a custom deleter to ensure that bson_destroy is called even when an exception is thrown
@@ -2318,7 +2318,7 @@ char * GameSave::serialiseOPS(unsigned int & dataLength)
 		}
 	}
 
-	unsigned char *soapLinkData = NULL;
+	unsigned char *soapLinkData = nullptr;
 	auto soapLinkDataPtr = std::unique_ptr<unsigned char[]>();
 	unsigned int soapLinkDataLen = 0;
 	if (soapCount)
@@ -2365,7 +2365,7 @@ char * GameSave::serialiseOPS(unsigned int & dataLength)
 	}
 
 	bson b;
-	b.data = NULL;
+	b.data = nullptr;
 	auto bson_deleter = [](bson * b) { bson_destroy(b); };
 	// Use unique_ptr with a custom deleter to ensure that bson_destroy is called even when an exception is thrown
 	std::unique_ptr<bson, decltype(bson_deleter)> b_ptr(&b, bson_deleter);
@@ -2631,7 +2631,7 @@ void GameSave::Deallocate2DArray(T ***array, int blockHeight)
 		for (int y = 0; y < blockHeight; y++)
 			delete[] (*array)[y];
 		delete[] (*array);
-		*array = NULL;
+		*array = nullptr;
 	}
 }
 
@@ -2660,7 +2660,7 @@ void GameSave::dealloc()
 	if (particles)
 	{
 		delete[] particles;
-		particles = NULL;
+		particles = nullptr;
 	}
 	Deallocate2DArray<unsigned char>(&blockMap, blockHeight);
 	Deallocate2DArray<float>(&fanVelX, blockHeight);
