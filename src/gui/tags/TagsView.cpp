@@ -76,10 +76,10 @@ void TagsView::OnDraw()
 
 void TagsView::NotifyTagsChanged(TagsModel * sender)
 {
-	for (auto & tag : tags)
+	for (size_t i = 0; i < tags.size(); i++)
 	{
-		RemoveComponent(tag);
-		delete tag;
+		RemoveComponent(tags[i]);
+		delete tags[i];
 	}
 	tags.clear();
 

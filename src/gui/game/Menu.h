@@ -22,9 +22,9 @@ public:
 
 	virtual ~Menu()
 	{
-		for(auto & tool : tools)
+		for(unsigned int i = 0; i < tools.size(); i++)
 		{
-			delete tool;
+			delete tools[i];
 		}
 		tools.clear();
 	}

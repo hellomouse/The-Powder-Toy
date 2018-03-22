@@ -67,17 +67,17 @@ class LoadFilesTask: public Task
 		});
 
 		notifyProgress(-1);
-		for(auto & file : files)
+		for(std::vector<std::string>::iterator iter = files.begin(), end = files.end(); iter != end; ++iter)
 		{
-			SaveFile * saveFile = new SaveFile(file);
+			SaveFile * saveFile = new SaveFile(*iter);
 			try
 			{
-				std::vector<unsigned char> data = Client::Ref().ReadFile(file);
+				std::vector<unsigned char> data = Client::Ref().ReadFile(*iter);
 				GameSave * tempSave = new GameSave(data);
 				saveFile->SetGameSave(tempSave);
 				saveFiles.push_back(saveFile);
 
-				std::string filename = file;
+				std::string filename = *iter;
 				size_t folderPos = filename.rfind(PATH_SEP);
 				if(folderPos!=std::string::npos && folderPos+1 < filename.size())
 				{
@@ -211,21 +211,21 @@ void FileBrowserActivity::RenameSave(SaveFile * file)
 
 void FileBrowserActivity::loadDirectory(std::string directory, std::string search)
 {
-	for (auto & component : components)
+	for (size_t i = 0; i < components.size(); i++)
 	{
-		RemoveComponent(component);
-		itemList->RemoveChild(component);
+		RemoveComponent(components[i]);
+		itemList->RemoveChild(components[i]);
 	}
 
-	for (auto & iter : componentsQueue)
+	for (std::vector<ui::Component*>::iterator iter = componentsQueue.begin(), end = componentsQueue.end(); iter != end; ++iter)
 	{
-		delete iter;
+		delete *iter;
 	}
 	componentsQueue.clear();
 
-	for (auto & file : files)
+	for (std::vector<SaveFile*>::iterator iter = files.begin(), end = files.end(); iter != end; ++iter)
 	{
-		delete file;
+		delete *iter;
 	}
 	files.clear();
 
@@ -254,9 +254,9 @@ void FileBrowserActivity::NotifyDone(Task * task)
 	}
 	else
 		itemList->Visible = true;
-	for (auto & component : components)
+	for (size_t i = 0; i < components.size(); i++)
 	{
-		delete component;
+		delete components[i];
 	}
 	components.clear();
 }
@@ -319,10 +319,10 @@ void FileBrowserActivity::OnTick(float dt)
 	}
 	else if(componentsQueue.size())
 	{
-		for(auto & iter : componentsQueue)
+		for(std::vector<ui::Component*>::iterator iter = componentsQueue.begin(), end = componentsQueue.end(); iter != end; ++iter)
 		{
-			components.push_back(iter);
-			itemList->AddChild(iter);
+			components.push_back(*iter);
+			itemList->AddChild(*iter);
 		}
 		componentsQueue.clear();
 		itemList->InnerSize.Y = (buttonHeight+(buttonPadding*2))*(fileY+1);

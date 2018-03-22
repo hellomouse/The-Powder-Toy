@@ -55,10 +55,10 @@ void ConsoleView::DoKeyPress(int key, Uint16 character, bool shift, bool ctrl, b
 
 void ConsoleView::NotifyPreviousCommandsChanged(ConsoleModel * sender)
 {
-	for (auto & i : commandList)
+	for (size_t i = 0; i < commandList.size(); i++)
 	{
-		RemoveComponent(i);
-		delete i;
+		RemoveComponent(commandList[i]);
+		delete commandList[i];
 	}
 	commandList.clear();
 	std::deque<ConsoleCommand> commands = sender->GetPreviousCommands();

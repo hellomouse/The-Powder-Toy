@@ -25,10 +25,10 @@ ContextMenu::ContextMenu(Component * source):
 
 void ContextMenu::Show(ui::Point position)
 {
-	for (auto & button : buttons)
+	for (size_t i = 0; i < buttons.size(); i++)
 	{
-		RemoveComponent(button);
-		delete button;
+		RemoveComponent(buttons[i]);
+		delete buttons[i];
 	}
 	buttons.clear();
 
@@ -42,12 +42,12 @@ void ContextMenu::Show(ui::Point position)
 	Position = position;
 
 	int currentY = 1;
-	for (auto & item : items)
+	for (size_t i = 0; i < items.size(); i++)
 	{
-		Button * tempButton = new Button(Point(1, currentY), Point(Size.X-2, 16), item.Text);
+		Button * tempButton = new Button(Point(1, currentY), Point(Size.X-2, 16), items[i].Text);
 		tempButton->Appearance = Appearance;
-		tempButton->Enabled = item.Enabled;
-		tempButton->SetActionCallback(new ItemSelectedAction(this, item.ID));
+		tempButton->Enabled = items[i].Enabled;
+		tempButton->SetActionCallback(new ItemSelectedAction(this, items[i].ID));
 		buttons.push_back(tempButton);
 		AddComponent(tempButton);
 		currentY += 15;
@@ -72,11 +72,11 @@ void ContextMenu::OnMouseDown(int x, int y, unsigned button)
 
 void ContextMenu::SetItem(int id, std::string text)
 {
-	for (auto & item : items)
+	for (size_t i = 0; i < items.size(); i++)
 	{
-		if (item.ID == id)
+		if (items[i].ID == id)
 		{
-			item.Text = text;
+			items[i].Text = text;
 			break;
 		}
 	}

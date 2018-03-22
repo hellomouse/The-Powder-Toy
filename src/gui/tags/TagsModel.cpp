@@ -65,9 +65,9 @@ void TagsModel::AddObserver(TagsView * observer)
 
 void TagsModel::notifyTagsChanged()
 {
-	for (auto & observer : observers)
+	for (size_t i = 0; i < observers.size(); i++)
 	{
-		observer->NotifyTagsChanged(this);
+		observers[i]->NotifyTagsChanged(this);
 	}
 }
 

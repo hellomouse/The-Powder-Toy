@@ -49,14 +49,14 @@ SaveButton::SaveButton(Point position, Point size, SaveInfo * save):
 
 		votesBackground = icon;
 
-		for (char & iter : icon)
-			iter -= 14;
+		for (std::string::iterator iter = icon.begin(), end = icon.end(); iter != end; ++iter)
+			*iter -= 14;
 
 		votesBackground2 = icon;
 
-		for (char & vote : votes)
-			if(vote != '-')
-				vote += 127;
+		for (std::string::iterator iter = votes.begin(), end = votes.end(); iter != end; ++iter)
+			if(*iter != '-')
+				*iter += 127;
 
 		votesString = votes;
 

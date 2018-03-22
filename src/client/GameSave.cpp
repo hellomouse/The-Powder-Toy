@@ -287,9 +287,9 @@ vector2d GameSave::Translate(vector2d translate)
 	vector2d translateReal = translate;
 	float minx = 0, miny = 0, maxx = 0, maxy = 0;
 	// determine minimum and maximum position of all particles / signs
-	for (auto & sign : signs)
+	for (size_t i = 0; i < signs.size(); i++)
 	{
-		pos = v2d_new(sign.x, sign.y);
+		pos = v2d_new(signs[i].x, signs[i].y);
 		pos = v2d_add(pos,translate);
 		nx = floor(pos.x+0.5f);
 		ny = floor(pos.y+0.5f);
@@ -406,19 +406,19 @@ void GameSave::Transform(matrix2d transform, vector2d translate, vector2d transl
 	ambientHeatNew = Allocate2DArray<float>(newBlockWidth, newBlockHeight, 0.0f);
 
 	// rotate and translate signs, parts, walls
-	for (auto & sign : signs)
+	for (size_t i = 0; i < signs.size(); i++)
 	{
-		pos = v2d_new(sign.x, sign.y);
+		pos = v2d_new(signs[i].x, signs[i].y);
 		pos = v2d_add(m2d_multiply_v2d(transform,pos),translate);
 		nx = floor(pos.x+0.5f);
 		ny = floor(pos.y+0.5f);
 		if (nx<0 || nx>=newWidth || ny<0 || ny>=newHeight)
 		{
-			sign.text[0] = 0;
+			signs[i].text[0] = 0;
 			continue;
 		}
-		sign.x = nx;
-		sign.y = ny;
+		signs[i].x = nx;
+		signs[i].y = ny;
 	}
 	for (int i = 0; i < particlesCount; i++)
 	{
@@ -1273,11 +1273,11 @@ void GameSave::readOPS(char * data, int dataLength)
 
 	if (tempSigns.size())
 	{
-		for (const auto & tempSign : tempSigns)
+		for (size_t i = 0; i < tempSigns.size(); i++)
 		{
 			if(signs.size() == MAXSIGNS)
 				break;
-			signs.push_back(tempSign);
+			signs.push_back(tempSigns[i]);
 		}
 	}
 }
@@ -1933,11 +1933,11 @@ void GameSave::readPSv(char * saveDataChar, int dataLength)
 		p += x;
 	}
 
-	for (const auto & tempSign : tempSigns)
+	for (size_t i = 0; i < tempSigns.size(); i++)
 	{
 		if(signs.size() == MAXSIGNS)
 			break;
-		signs.push_back(tempSign);
+		signs.push_back(tempSigns[i]);
 	}
 }
 
@@ -2407,9 +2407,9 @@ char * GameSave::serialiseOPS(unsigned int & dataLength)
 		if (palette.size())
 		{
 			bson_append_start_array(&b, "palette");
-			for(auto & iter : palette)
+			for(std::vector<PaletteItem>::iterator iter = palette.begin(), end = palette.end(); iter != end; ++iter)
 			{
-				bson_append_int(&b, iter.first.c_str(), iter.second);
+				bson_append_int(&b, (*iter).first.c_str(), (*iter).second);
 			}
 			bson_append_finish_array(&b);
 		}
@@ -2432,9 +2432,9 @@ char * GameSave::serialiseOPS(unsigned int & dataLength)
 	if (soapLinkData && soapLinkDataLen)
 		bson_append_binary(&b, "soapLinks", BSON_BIN_USER, (const char *)soapLinkData, soapLinkDataLen);
 	unsigned int signsCount = 0;
-	for (auto & sign : signs)
+	for (size_t i = 0; i < signs.size(); i++)
 	{
-		if(sign.text.length() && sign.x>=0 && sign.x<=fullW && sign.y>=0 && sign.y<=fullH)
+		if(signs[i].text.length() && signs[i].x>=0 && signs[i].x<=fullW && signs[i].y>=0 && signs[i].y<=fullH)
 		{
 			signsCount++;
 		}
@@ -2442,15 +2442,15 @@ char * GameSave::serialiseOPS(unsigned int & dataLength)
 	if (signsCount)
 	{
 		bson_append_start_array(&b, "signs");
-		for (auto & sign : signs)
+		for (size_t i = 0; i < signs.size(); i++)
 		{
-			if(sign.text.length() && sign.x>=0 && sign.x<=fullW && sign.y>=0 && sign.y<=fullH)
+			if(signs[i].text.length() && signs[i].x>=0 && signs[i].x<=fullW && signs[i].y>=0 && signs[i].y<=fullH)
 			{
 				bson_append_start_object(&b, "sign");
-				bson_append_string(&b, "text", sign.text.c_str());
-				bson_append_int(&b, "justification", sign.ju);
-				bson_append_int(&b, "x", sign.x);
-				bson_append_int(&b, "y", sign.y);
+				bson_append_string(&b, "text", signs[i].text.c_str());
+				bson_append_int(&b, "justification", signs[i].ju);
+				bson_append_int(&b, "x", signs[i].x);
+				bson_append_int(&b, "y", signs[i].y);
 				bson_append_finish_object(&b);
 			}
 		}
@@ -2545,23 +2545,24 @@ std::set<int> GetNestedSaveIDs(Json::Value j)
 {
 	Json::Value::Members members = j.getMemberNames();
 	std::set<int> saveIDs = std::set<int>();
-	for (auto member : members)
+	for (Json::Value::Members::iterator iter = members.begin(), end = members.end(); iter != end; ++iter)
 	{
+		std::string member = *iter;
 		if (member == "id" && j[member].isInt())
 			saveIDs.insert(j[member].asInt());
 		else if (j[member].isArray())
 		{
-			for (const auto & i : j[member])
+			for (Json::Value::ArrayIndex i = 0; i < j[member].size(); i++)
 			{
 				// only supports objects and ints here because that is all we need
-				if (i.isInt())
+				if (j[member][i].isInt())
 				{
-					saveIDs.insert(i.asInt());
+					saveIDs.insert(j[member][i].asInt());
 					continue;
 				}
-				if (!i.isObject())
+				if (!j[member][i].isObject())
 					continue;
-				std::set<int> nestedSaveIDs = GetNestedSaveIDs(i);
+				std::set<int> nestedSaveIDs = GetNestedSaveIDs(j[member][i]);
 				saveIDs.insert(nestedSaveIDs.begin(), nestedSaveIDs.end());
 			}
 		}
@@ -2573,8 +2574,9 @@ std::set<int> GetNestedSaveIDs(Json::Value j)
 void GameSave::ConvertJsonToBson(bson *b, Json::Value j, int depth)
 {
 	Json::Value::Members members = j.getMemberNames();
-	for (auto member : members)
+	for (Json::Value::Members::iterator iter = members.begin(), end = members.end(); iter != end; ++iter)
 	{
+		std::string member = *iter;
 		if (j[member].isString())
 			bson_append_string(b, member.c_str(), j[member].asCString());
 		else if (j[member].isBool())
@@ -2588,32 +2590,32 @@ void GameSave::ConvertJsonToBson(bson *b, Json::Value j, int depth)
 			bson_append_start_array(b, member.c_str());
 			std::set<int> saveIDs = std::set<int>();
 			int length = 0;
-			for (const auto & i : j[member])
+			for (Json::Value::ArrayIndex i = 0; i < j[member].size(); i++)
 			{
 				// only supports objects and ints here because that is all we need
-				if (i.isInt())
+				if (j[member][i].isInt())
 				{
-					saveIDs.insert(i.asInt());
+					saveIDs.insert(j[member][i].asInt());
 					continue;
 				}
-				if (!i.isObject())
+				if (!j[member][i].isObject())
 					continue;
 				if (depth > 4 || length > (int)(40 / ((depth+1) * (depth+1))))
 				{
-					std::set<int> nestedSaveIDs = GetNestedSaveIDs(i);
+					std::set<int> nestedSaveIDs = GetNestedSaveIDs(j[member][i]);
 					saveIDs.insert(nestedSaveIDs.begin(), nestedSaveIDs.end());
 				}
 				else
 				{
 					bson_append_start_object(b, "part");
-					ConvertJsonToBson(b, i, depth+1);
+					ConvertJsonToBson(b, j[member][i], depth+1);
 					bson_append_finish_object(b);
 				}
 				length++;
 			}
-			for (int saveID : saveIDs)
+			for (std::set<int>::iterator iter = saveIDs.begin(), end = saveIDs.end(); iter != end; ++iter)
 			{
-				bson_append_int(b, "saveID", saveID);
+				bson_append_int(b, "saveID", *iter);
 			}
 			bson_append_finish_array(b);
 		}

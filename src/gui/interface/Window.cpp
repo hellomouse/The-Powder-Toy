@@ -27,10 +27,10 @@ Window::Window(Point _position, Point _size):
 
 Window::~Window()
 {
-	for (auto & Component : Components)
-		if (Component)
+	for (unsigned i = 0, sz = Components.size(); i < sz; ++i)
+		if (Components[i])
 		{
-			delete Component;
+			delete Components[i];
 		}
 	Components.clear();
 }
@@ -163,22 +163,22 @@ void Window::DoFocus()
 void Window::DoDraw()
 {
 	OnDraw();
-	for (auto & Component : Components)
-		if (Component->Visible && ((Component != focusedComponent_ && Component != hoverComponent) || Component->GetParent()))
+	for (int i = 0, sz = Components.size(); i < sz; ++i)
+		if (Components[i]->Visible && ((Components[i] != focusedComponent_ && Components[i] != hoverComponent) || Components[i]->GetParent()))
 		{
-			Point scrpos(Component->Position.X + Position.X, Component->Position.Y + Position.Y);
+			Point scrpos(Components[i]->Position.X + Position.X, Components[i]->Position.Y + Position.Y);
 			if (AllowExclusiveDrawing)
 			{
-				Component->Draw(scrpos);
+				Components[i]->Draw(scrpos);
 			}
 			else
 			{
-				if (scrpos.X + Component->Size.X >= 0 &&
-				    scrpos.Y + Component->Size.Y >= 0 &&
+				if (scrpos.X + Components[i]->Size.X >= 0 &&
+				    scrpos.Y + Components[i]->Size.Y >= 0 &&
 				    scrpos.X < ui::Engine::Ref().GetWidth() &&
 				    scrpos.Y < ui::Engine::Ref().GetHeight())
 				{
-					Component->Draw(scrpos);
+					Components[i]->Draw(scrpos);
 				}
 			}
 #ifdef DEBUG

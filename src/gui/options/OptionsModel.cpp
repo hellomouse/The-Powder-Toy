@@ -137,9 +137,9 @@ void OptionsModel::SetShowAvatars(bool state)
 
 void OptionsModel::notifySettingsChanged()
 {
-	for (auto & observer : observers)
+	for (size_t i = 0; i < observers.size(); i++)
 	{
-		observer->NotifySettingsChanged(this);
+		observers[i]->NotifySettingsChanged(this);
 	}
 }
 

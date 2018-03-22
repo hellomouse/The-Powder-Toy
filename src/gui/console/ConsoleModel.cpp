@@ -55,17 +55,17 @@ std::deque<ConsoleCommand> ConsoleModel::GetPreviousCommands()
 
 void ConsoleModel::notifyPreviousCommandsChanged()
 {
-	for (auto & observer : observers)
+	for (size_t i = 0; i < observers.size(); i++)
 	{
-		observer->NotifyPreviousCommandsChanged(this);
+		observers[i]->NotifyPreviousCommandsChanged(this);
 	}
 }
 
 void ConsoleModel::notifyCurrentCommandChanged()
 {
-	for (auto & observer : observers)
+	for (size_t i = 0; i < observers.size(); i++)
 	{
-		observer->NotifyCurrentCommandChanged(this);
+		observers[i]->NotifyCurrentCommandChanged(this);
 	}
 }
 

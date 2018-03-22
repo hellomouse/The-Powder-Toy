@@ -106,9 +106,9 @@ int Element_ETRD::nearestSparkablePart(Simulation *sim, int targetId)
 		// TODO: probably not optimal if excessive stacking is used
 		if (sim->parts_lastActiveIndex > (int)deltaPos.size()*2)
 		{
-			for (auto & deltaPo : deltaPos)
+			for (std::vector<ETRD_deltaWithLength>::iterator iter = deltaPos.begin(), end = deltaPos.end(); iter != end; ++iter)
 			{
-				ETRD_deltaWithLength delta = deltaPo;
+				ETRD_deltaWithLength delta = (*iter);
 				ui::Point checkPos = targetPos + delta.d;
 				int checkDistance = delta.length;
 				if (foundDistance < checkDistance)

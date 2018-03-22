@@ -35,9 +35,9 @@ RequestBroker::RequestBroker()
 
 RequestBroker::~RequestBroker()
 {
-	for(auto & iter : imageCache)
+	for(std::deque<std::pair<std::string, VideoBuffer*> >::iterator iter = imageCache.begin(), end = imageCache.end(); iter != end; ++iter)
 	{
-		delete iter.second;
+		delete (*iter).second;
 	}
 }
 

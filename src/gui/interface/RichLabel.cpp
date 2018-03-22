@@ -182,14 +182,14 @@ void RichLabel::Draw(const Point& screenPos)
 void RichLabel::OnMouseClick(int x, int y, unsigned button)
 {
 	int cursorPosition = Graphics::CharIndexAtPosition((char*)displayText.c_str(), x-textPosition.X, y-textPosition.Y);
-	for(auto & region : regions)
+	for(std::vector<RichTextRegion>::iterator iter = regions.begin(), end = regions.end(); iter != end; ++iter)
 	{
-		if(region.start <= cursorPosition && region.finish >= cursorPosition)
+		if((*iter).start <= cursorPosition && (*iter).finish >= cursorPosition)
 		{
-			switch(region.action)
+			switch((*iter).action)
 			{
 				case 'a':
-					Platform::OpenURI(region.actionData);
+					Platform::OpenURI((*iter).actionData);
 				break;
 			}
 		}

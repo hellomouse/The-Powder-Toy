@@ -459,8 +459,9 @@ GameView::~GameView()
 	if(!colourPicker->GetParentWindow())
 		delete colourPicker;
 
-	for(auto button : colourPresets)
+	for(std::vector<ToolButton*>::iterator iter = colourPresets.begin(), end = colourPresets.end(); iter != end; ++iter)
 	{
+		ToolButton * button = *iter;
 		if(!button->GetParentWindow())
 		{
 			delete button;
@@ -567,16 +568,17 @@ public:
 
 void GameView::NotifyQuickOptionsChanged(GameModel * sender)
 {
-	for (auto & quickOptionButton : quickOptionButtons)
+	for (size_t i = 0; i < quickOptionButtons.size(); i++)
 	{
-		RemoveComponent(quickOptionButton);
-		delete quickOptionButton;
+		RemoveComponent(quickOptionButtons[i]);
+		delete quickOptionButtons[i];
 	}
 
 	int currentY = 1;
 	vector<QuickOption*> optionList = sender->GetQuickOptions();
-	for(auto option : optionList)
+	for(vector<QuickOption*>::iterator iter = optionList.begin(), end = optionList.end(); iter != end; ++iter)
 	{
+		QuickOption * option = *iter;
 		ui::Button * tempButton = new ui::Button(ui::Point(WINDOWW-16, currentY), ui::Point(15, 15), option->GetIcon(), option->GetDescription());
 		//tempButton->Appearance.Margin = ui::Border(0, 2, 3, 2);
 		tempButton->SetTogglable(true);
@@ -592,16 +594,16 @@ void GameView::NotifyQuickOptionsChanged(GameModel * sender)
 void GameView::NotifyMenuListChanged(GameModel * sender)
 {
 	int currentY = WINDOWH-48;//-(sender->GetMenuList().size()*16);
-	for (auto & menuButton : menuButtons)
+	for (size_t i = 0; i < menuButtons.size(); i++)
 	{
-		RemoveComponent(menuButton);
-		delete menuButton;
+		RemoveComponent(menuButtons[i]);
+		delete menuButtons[i];
 	}
 	menuButtons.clear();
-	for (auto & toolButton : toolButtons)
+	for (size_t i = 0; i < toolButtons.size(); i++)
 	{
-		RemoveComponent(toolButton);
-		delete toolButton;
+		RemoveComponent(toolButtons[i]);
+		delete toolButtons[i];
 	}
 	toolButtons.clear();
 	vector<Menu*> menuList = sender->GetMenuList();
@@ -670,12 +672,12 @@ bool GameView::GetPlacingZoom()
 void GameView::NotifyActiveToolsChanged(GameModel * sender)
 {
 	decoBrush = false;
-	for (auto & toolButton : toolButtons)
+	for (size_t i = 0; i < toolButtons.size(); i++)
 	{
-		Tool * tool = ((ToolAction*)toolButton->GetActionCallback())->tool;
+		Tool * tool = ((ToolAction*)toolButtons[i]->GetActionCallback())->tool;
 		if(sender->GetActiveTool(0) == tool)
 		{
-			toolButton->SetSelectionState(0);	//Primary
+			toolButtons[i]->SetSelectionState(0);	//Primary
 			if (tool->GetIdentifier().find("DEFAULT_UI_WIND") != tool->GetIdentifier().npos)
 				windTool = true;
 			else
@@ -686,21 +688,21 @@ void GameView::NotifyActiveToolsChanged(GameModel * sender)
 		}
 		else if(sender->GetActiveTool(1) == tool)
 		{
-			toolButton->SetSelectionState(1);	//Secondary
+			toolButtons[i]->SetSelectionState(1);	//Secondary
 			if (sender->GetActiveTool(1)->GetIdentifier().find("DEFAULT_DECOR_") != sender->GetActiveTool(1)->GetIdentifier().npos)
 				decoBrush = true;
 		}
 		else if(sender->GetActiveTool(2) == tool)
 		{
-			toolButton->SetSelectionState(2);	//Tertiary
+			toolButtons[i]->SetSelectionState(2);	//Tertiary
 		}
 		else if(sender->GetActiveTool(3) == tool)
 		{
-			toolButton->SetSelectionState(3);	//Replace Mode
+			toolButtons[i]->SetSelectionState(3);	//Replace Mode
 		}
 		else
 		{
-			toolButton->SetSelectionState(-1);
+			toolButtons[i]->SetSelectionState(-1);
 		}
 	}
 	//need to do this for all tools every time just in case it wasn't caught if you weren't in the menu a tool was changed to
@@ -732,61 +734,61 @@ void GameView::NotifyLastToolChanged(GameModel * sender)
 
 void GameView::NotifyToolListChanged(GameModel * sender)
 {
-	for (auto & menuButton : menuButtons)
+	for (size_t i = 0; i < menuButtons.size(); i++)
 	{
-		if (((MenuAction*)menuButton->GetActionCallback())->menuID==sender->GetActiveMenu())
+		if (((MenuAction*)menuButtons[i]->GetActionCallback())->menuID==sender->GetActiveMenu())
 		{
-			menuButton->SetToggleState(true);
+			menuButtons[i]->SetToggleState(true);
 		}
 		else
 		{
-			menuButton->SetToggleState(false);
+			menuButtons[i]->SetToggleState(false);
 		}
 	}
-	for (auto & toolButton : toolButtons)
+	for (size_t i = 0; i < toolButtons.size(); i++)
 	{
-		RemoveComponent(toolButton);
-		delete toolButton;
+		RemoveComponent(toolButtons[i]);
+		delete toolButtons[i];
 	}
 	toolButtons.clear();
 	vector<Tool*> toolList = sender->GetToolList();
 	int currentX = 0;
-	for (auto & i : toolList)
+	for (size_t i = 0; i < toolList.size(); i++)
 	{
-		VideoBuffer * tempTexture = i->GetTexture(26, 14);
+		VideoBuffer * tempTexture = toolList[i]->GetTexture(26, 14);
 		ToolButton * tempButton;
 
 		//get decotool texture manually, since it changes depending on it's own color
 		if (sender->GetActiveMenu() == SC_DECO)
-			tempTexture = ((DecorationTool*)i)->GetIcon(i->GetToolID(), 26, 14);
+			tempTexture = ((DecorationTool*)toolList[i])->GetIcon(toolList[i]->GetToolID(), 26, 14);
 
 		if(tempTexture)
-			tempButton = new ToolButton(ui::Point(currentX, YRES+1), ui::Point(30, 18), "", i->GetIdentifier(), i->GetDescription());
+			tempButton = new ToolButton(ui::Point(currentX, YRES+1), ui::Point(30, 18), "", toolList[i]->GetIdentifier(), toolList[i]->GetDescription());
 		else
-			tempButton = new ToolButton(ui::Point(currentX, YRES+1), ui::Point(30, 18), i->GetName(), i->GetIdentifier(), i->GetDescription());
+			tempButton = new ToolButton(ui::Point(currentX, YRES+1), ui::Point(30, 18), toolList[i]->GetName(), toolList[i]->GetIdentifier(), toolList[i]->GetDescription());
 
 		//currentY -= 17;
 		currentX -= 31;
-		tempButton->SetActionCallback(new ToolAction(this, i));
+		tempButton->SetActionCallback(new ToolAction(this, toolList[i]));
 
 		tempButton->Appearance.SetTexture(tempTexture);
 		delete tempTexture;
 
-		tempButton->Appearance.BackgroundInactive = ui::Colour(i->colRed, i->colGreen, i->colBlue);
+		tempButton->Appearance.BackgroundInactive = ui::Colour(toolList[i]->colRed, toolList[i]->colGreen, toolList[i]->colBlue);
 
-		if(sender->GetActiveTool(0) == i)
+		if(sender->GetActiveTool(0) == toolList[i])
 		{
 			tempButton->SetSelectionState(0);	//Primary
 		}
-		else if(sender->GetActiveTool(1) == i)
+		else if(sender->GetActiveTool(1) == toolList[i])
 		{
 			tempButton->SetSelectionState(1);	//Secondary
 		}
-		else if(sender->GetActiveTool(2) == i)
+		else if(sender->GetActiveTool(2) == toolList[i])
 		{
 			tempButton->SetSelectionState(2);	//Tertiary
 		}
-		else if(sender->GetActiveTool(3) == i)
+		else if(sender->GetActiveTool(3) == toolList[i])
 		{
 			tempButton->SetSelectionState(3);	//Replace mode
 		}
@@ -804,8 +806,9 @@ void GameView::NotifyToolListChanged(GameModel * sender)
 
 void GameView::NotifyColourSelectorVisibilityChanged(GameModel * sender)
 {
-	for(auto button : colourPresets)
+	for(std::vector<ToolButton*>::iterator iter = colourPresets.begin(), end = colourPresets.end(); iter != end; ++iter)
 	{
+		ToolButton * button = *iter;
 		RemoveComponent(button);
 		button->SetParentWindow(nullptr);
 	}
@@ -815,8 +818,9 @@ void GameView::NotifyColourSelectorVisibilityChanged(GameModel * sender)
 
 	if(sender->GetColourSelectorVisibility())
 	{
-		for(auto button : colourPresets)
+		for(std::vector<ToolButton*>::iterator iter = colourPresets.begin(), end = colourPresets.end(); iter != end; ++iter)
 		{
+			ToolButton * button = *iter;
 			AddComponent(button);
 		}
 		AddComponent(colourPicker);
@@ -840,8 +844,9 @@ void GameView::NotifyColourPresetsChanged(GameModel * sender)
 	};
 
 
-	for(auto button : colourPresets)
+	for(std::vector<ToolButton*>::iterator iter = colourPresets.begin(), end = colourPresets.end(); iter != end; ++iter)
 	{
+		ToolButton * button = *iter;
 		RemoveComponent(button);
 		delete button;
 	}
@@ -850,10 +855,10 @@ void GameView::NotifyColourPresetsChanged(GameModel * sender)
 	int currentX = 5;
 	std::vector<ui::Colour> colours = sender->GetColourPresets();
 	int i = 0;
-	for(auto & colour : colours)
+	for(std::vector<ui::Colour>::iterator iter = colours.begin(), end = colours.end(); iter != end; ++iter)
 	{
 		ToolButton * tempButton = new ToolButton(ui::Point(currentX, YRES+1), ui::Point(30, 18), "", "", "Decoration Presets.");
-		tempButton->Appearance.BackgroundInactive = colour;
+		tempButton->Appearance.BackgroundInactive = *iter;
 		tempButton->SetActionCallback(new ColourPresetAction(this, i));
 
 		currentX += 31;
@@ -1104,8 +1109,9 @@ void GameView::updateToolButtonScroll()
 		}
 		scrollBar->Size.X=scrollSize;
 		int offsetDelta = toolButtons[0]->Position.X - newInitialX;
-		for(auto button : toolButtons)
+		for(vector<ToolButton*>::iterator iter = toolButtons.begin(), end = toolButtons.end(); iter!=end; ++iter)
 		{
+			ToolButton * button = *iter;
 			button->Position.X -= offsetDelta;
 			if (button->Position.X+button->Size.X <= 0 || (button->Position.X+button->Size.X) > XRES-2)
 				button->Visible = false;
@@ -1116,8 +1122,9 @@ void GameView::updateToolButtonScroll()
 		//Ensure that mouseLeave events are make their way to the buttons should they move from underneath the mouse pointer
 		if(toolButtons[0]->Position.Y < y && toolButtons[0]->Position.Y+toolButtons[0]->Size.Y > y)
 		{
-			for(auto button : toolButtons)
+			for(vector<ToolButton*>::iterator iter = toolButtons.begin(), end = toolButtons.end(); iter!=end; ++iter)
 			{
+				ToolButton * button = *iter;
 				if(button->Position.X < x && button->Position.X+button->Size.X > x)
 					button->OnMouseEnter(x, y);
 				else
@@ -1893,11 +1900,11 @@ void GameView::NotifyNotificationsChanged(GameModel * sender)
 	std::vector<Notification*> notifications = sender->GetNotifications();
 
 	int currentY = YRES-23;
-	for(auto & notification : notifications)
+	for(std::vector<Notification*>::iterator iter = notifications.begin(), end = notifications.end(); iter != end; ++iter)
 	{
-		int width = (Graphics::textwidth(notification->Message.c_str()))+8;
-		ui::Button * tempButton = new ui::Button(ui::Point(XRES-width-22, currentY), ui::Point(width, 15), notification->Message);
-		tempButton->SetActionCallback(new NotificationButtonAction(notification));
+		int width = (Graphics::textwidth((*iter)->Message.c_str()))+8;
+		ui::Button * tempButton = new ui::Button(ui::Point(XRES-width-22, currentY), ui::Point(width, 15), (*iter)->Message);
+		tempButton->SetActionCallback(new NotificationButtonAction(*iter));
 		tempButton->Appearance.BorderInactive = style::Colour::WarningTitle;
 		tempButton->Appearance.TextInactive = style::Colour::WarningTitle;
 		tempButton->Appearance.BorderHover = ui::Colour(255, 175, 0);
@@ -1907,7 +1914,7 @@ void GameView::NotifyNotificationsChanged(GameModel * sender)
 
 		tempButton = new ui::Button(ui::Point(XRES-20, currentY), ui::Point(15, 15), "\xAA");
 		//tempButton->SetIcon(IconClose);
-		tempButton->SetActionCallback(new CloseNotificationButtonAction(this, notification));
+		tempButton->SetActionCallback(new CloseNotificationButtonAction(this, *iter));
 		tempButton->Appearance.Margin.Left -= 1;
 		tempButton->Appearance.Margin.Top -= 1;
 		tempButton->Appearance.BorderInactive = style::Colour::WarningTitle;

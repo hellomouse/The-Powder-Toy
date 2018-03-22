@@ -95,9 +95,9 @@ ElementSearchActivity::ElementSearchActivity(GameController * gameController, st
 void ElementSearchActivity::searchTools(std::string query)
 {
 	firstResult = nullptr;
-	for(auto & toolButton : toolButtons) {
-		delete toolButton;
-		RemoveComponent(toolButton);
+	for(std::vector<ToolButton*>::iterator iter = toolButtons.begin(), end = toolButtons.end(); iter != end; ++iter) {
+		delete *iter;
+		RemoveComponent(*iter);
 	}
 	toolButtons.clear();
 

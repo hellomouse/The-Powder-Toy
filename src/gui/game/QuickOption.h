@@ -38,8 +38,8 @@ protected:
 public:
 	virtual ~QuickOption()
 	{
-		for(auto & listener : listeners)
-			delete listener;
+		for(std::vector<QuickOptionListener*>::iterator iter = listeners.begin(), end = listeners.end(); iter != end; ++iter)
+			delete *iter;
 	}
 
 	std::vector<QuickOptionListener*> GetListeners()
@@ -65,12 +65,12 @@ public:
 	void Perform()
 	{
 		perform();
-		for(auto & listener : listeners)
-			listener->OnValueChanged(this);
+		for(std::vector<QuickOptionListener*>::iterator iter = listeners.begin(), end = listeners.end(); iter != end; ++iter)
+			(*iter)->OnValueChanged(this);
 	}
 	void Update()
 	{
-		for(auto & listener : listeners)
-			listener->OnValueChanged(this);
+		for(std::vector<QuickOptionListener*>::iterator iter = listeners.begin(), end = listeners.end(); iter != end; ++iter)
+			(*iter)->OnValueChanged(this);
 	}
 };

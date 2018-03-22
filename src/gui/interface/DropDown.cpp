@@ -165,9 +165,9 @@ void DropDown::OnMouseLeave(int x, int y)
 	}
 	void DropDown::AddOption(std::pair<std::string, int> option)
 	{
-		for (const auto & i : options)
+		for (size_t i = 0; i < options.size(); i++)
 		{
-			if (i == option)
+			if (options[i] == option)
 				return;
 		}
 		options.push_back(option);

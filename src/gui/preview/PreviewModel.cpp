@@ -188,8 +188,8 @@ void PreviewModel::ClearComments()
 {
 	if (saveComments)
 	{
-		for (auto & saveComment : *saveComments)
-			delete saveComment;
+		for (size_t i = 0; i < saveComments->size(); i++)
+			delete saveComments->at(i);
 		saveComments->clear();
 		delete saveComments;
 		saveComments = nullptr;
@@ -223,8 +223,8 @@ bool PreviewModel::ParseSaveInfo(char * saveInfoResponse)
 
 		Json::Value tagsArray = objDocument["Tags"];
 		std::list<std::string> tempTags;
-		for (const auto & j : tagsArray)
-			tempTags.push_back(j.asString());
+		for (Json::UInt j = 0; j < tagsArray.size(); j++)
+			tempTags.push_back(tagsArray[j].asString());
 
 		saveInfo = new SaveInfo(tempID, tempCreatedDate, tempUpdatedDate, tempScoreUp,
 		                        tempScoreDown, tempMyScore, tempUsername, tempName,
@@ -266,14 +266,14 @@ bool PreviewModel::ParseComments(char *commentsResponse)
 		Json::Value commentsArray;
 		dataStream >> commentsArray;
 
-		for (auto & j : commentsArray)
+		for (Json::UInt j = 0; j < commentsArray.size(); j++)
 		{
-			auto userID = format::StringToNumber<int>(j["UserID"].asString());
-			std::string username = j["Username"].asString();
-			std::string formattedUsername = j["FormattedUsername"].asString();
+			auto userID = format::StringToNumber<int>(commentsArray[j]["UserID"].asString());
+			std::string username = commentsArray[j]["Username"].asString();
+			std::string formattedUsername = commentsArray[j]["FormattedUsername"].asString();
 			if (formattedUsername == "jacobot")
 				formattedUsername = "\bt" + formattedUsername;
-			std::string comment = j["Text"].asString();
+			std::string comment = commentsArray[j]["Text"].asString();
 			saveComments->push_back(new SaveComment(userID, username, formattedUsername, comment));
 		}
 		return true;
@@ -301,9 +301,9 @@ void PreviewModel::Update()
 		}
 		else
 		{
-			for (auto & observer : observers)
+			for (size_t i = 0; i < observers.size(); i++)
 			{
-				observer->SaveLoadingError(Client::Ref().GetLastError());
+				observers[i]->SaveLoadingError(Client::Ref().GetLastError());
 			}
 		}
 		saveDataDownload = nullptr;
@@ -324,14 +324,14 @@ void PreviewModel::Update()
 			}
 			else
 			{
-				for (auto & observer : observers)
-					observer->SaveLoadingError("Could not parse save info");
+				for (size_t i = 0; i < observers.size(); i++)
+					observers[i]->SaveLoadingError("Could not parse save info");
 			}
 		}
 		else
 		{
-			for (auto & observer : observers)
-				observer->SaveLoadingError(Client::Ref().GetLastError());
+			for (size_t i = 0; i < observers.size(); i++)
+				observers[i]->SaveLoadingError(Client::Ref().GetLastError());
 		}
 		saveInfoDownload = nullptr;
 	}
@@ -361,33 +361,33 @@ std::vector<SaveComment*> * PreviewModel::GetComments()
 
 void PreviewModel::notifySaveChanged()
 {
-	for (auto & observer : observers)
+	for (size_t i = 0; i < observers.size(); i++)
 	{
-		observer->NotifySaveChanged(this);
+		observers[i]->NotifySaveChanged(this);
 	}
 }
 
 void PreviewModel::notifyCommentBoxEnabledChanged()
 {
-	for (auto & observer : observers)
+	for (size_t i = 0; i < observers.size(); i++)
 	{
-		observer->NotifyCommentBoxEnabledChanged(this);
+		observers[i]->NotifyCommentBoxEnabledChanged(this);
 	}
 }
 
 void PreviewModel::notifyCommentsPageChanged()
 {
-	for (auto & observer : observers)
+	for (size_t i = 0; i < observers.size(); i++)
 	{
-		observer->NotifyCommentsPageChanged(this);
+		observers[i]->NotifyCommentsPageChanged(this);
 	}
 }
 
 void PreviewModel::notifySaveCommentsChanged()
 {
-	for (auto & observer : observers)
+	for (size_t i = 0; i < observers.size(); i++)
 	{
-		observer->NotifyCommentsChanged(this);
+		observers[i]->NotifyCommentsChanged(this);
 	}
 }
 

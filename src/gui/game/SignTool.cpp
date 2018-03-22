@@ -177,8 +177,9 @@ void SignWindow::OnTryExit(ui::Window::ExitMethod method)
 
 void SignWindow::DoDraw()
 {
-	for(auto & currentSign : sim->signs)
+	for(std::vector<sign>::iterator iter = sim->signs.begin(), end = sim->signs.end(); iter != end; ++iter)
 	{
+		sign & currentSign = *iter;
 		int x, y, w, h, dx, dy;
 		char type = 0;
 		Graphics * g = GetGraphics();
