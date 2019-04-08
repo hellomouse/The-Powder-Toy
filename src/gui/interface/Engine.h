@@ -113,6 +113,7 @@ namespace ui
 		int mousey_;
 		int mousexp_;
 		int mouseyp_;
+		int scrollBaseValue;
 		int width_;
 		int height_;
 

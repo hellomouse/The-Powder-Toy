@@ -409,8 +409,6 @@ void EventProcess(SDL_Event event)
 			y *= -1;
 		}
 
-		printf("%i,%i\n", x, y);
-
 		engine->onMouseWheel(mousex, mousey, y); // TODO: pass x?
 		break;
 	}

@@ -34,6 +34,7 @@ Engine::Engine():
 	mousey_(0),
 	mousexp_(0),
 	mouseyp_(0),
+	scrollBaseValue(0),
 	maxWidth(0),
 	maxHeight(0)
 {
@@ -304,6 +305,15 @@ void Engine::onMouseMove(int x, int y)
 
 void Engine::onMouseWheel(int x, int y, int delta)
 {
+	// normalize scroll events
+	// assumes that all delta values are multiplies of a base value
+	int posDelta = abs(delta);
+	if (!scrollBaseValue) scrollBaseValue = posDelta;
+	else {
+		int mod = posDelta % scrollBaseValue;
+		if (mod) scrollBaseValue = mod;
+	}
+	delta = delta / scrollBaseValue;
 	if (state_ && !ignoreEvents)
 		state_->DoMouseWheel(x, y, delta);
 }
