@@ -10,7 +10,6 @@
 *~
 *.pref
 *.lua
-*.sh
 stdout.txt
 stderr.txt
 build*/*
@@ -70,4 +69,3 @@ site_scons/site_tools/gch/*.pyc
 
 screenshot_*
 emscripten-build/
-.vscode/ipch/
