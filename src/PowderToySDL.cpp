@@ -742,9 +742,9 @@ int main(int argc, char * argv[])
 	{
 		proxyString = (Client::Ref().GetPrefByteString("Proxy", ""));
 	}
-
-	Client::Ref().Initialise(proxyString);
 	*/
+
+	Client::Ref().Initialise();
 
 	// TODO: maybe bind the maximum allowed scale to screen size somehow
 	if(scale < 1 || scale > 10)

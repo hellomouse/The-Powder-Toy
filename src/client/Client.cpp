@@ -107,7 +107,7 @@ Client::Client():
 		firstRun = true;
 }
 
-void Client::Initialise(ByteString proxyString)
+void Client::Initialise()
 {
 	/*
 	if (GetPrefBool("version.update", false))

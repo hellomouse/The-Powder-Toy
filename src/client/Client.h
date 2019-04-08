@@ -122,7 +122,7 @@ public:
 	void SetMessageOfTheDay(String message);
 	String GetMessageOfTheDay();
 
-	void Initialise(ByteString proxyString);
+	void Initialise();
 	bool IsFirstRun();
 
 	int MakeDirectory(const char * dirname);
