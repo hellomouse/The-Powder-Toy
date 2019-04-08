@@ -256,11 +256,8 @@
             meminitXHR.open('GET', memoryInitializer, true);
             meminitXHR.responseType = 'arraybuffer';
             meminitXHR.send(null);
-
-            let script = document.createElement('script');
-            script.src = "tpt.js";
-            document.body.appendChild(script);
         }
         </script>
+        <script type="text/javascript" src="tpt.js"></script>
     </body>
 </html>
