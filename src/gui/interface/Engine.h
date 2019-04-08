@@ -36,13 +36,15 @@ namespace ui
 
 		void Begin(int width, int height);
 		inline bool Running() { return running_; }
-		inline bool Broken() { return break_; }
+		// inline bool Broken() { return break_; }
 		inline long unsigned int LastTick() { return lastTick; }
 		inline void LastTick(long unsigned int tick) { lastTick = tick; }
 		void Exit();
 		void ConfirmExit();
+		/* not supported
 		void Break();
 		void UnBreak();
+		*/
 
 		void SetFullscreen(bool fullscreen) { Fullscreen = fullscreen; }
 		inline bool GetFullscreen() { return Fullscreen; }
@@ -102,7 +104,7 @@ namespace ui
 		bool ignoreEvents = false;
 
 		bool running_;
-		bool break_;
+		// bool break_;
 		bool FastQuit;
 
 		long unsigned int lastTick;

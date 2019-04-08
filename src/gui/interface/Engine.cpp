@@ -26,7 +26,7 @@ Engine::Engine():
 	mousePositions(stack<Point>()),
 	state_(NULL),
 	windowTargetPosition(0, 0),
-	break_(false),
+	// break_(false),
 	FastQuit(1),
 	lastTick(0),
 	mouseb_(0),
@@ -60,6 +60,7 @@ void Engine::Begin(int width, int height)
 	height_ = height;
 }
 
+/* not supported
 void Engine::Break()
 {
 	break_ = true;
@@ -69,6 +70,7 @@ void Engine::UnBreak()
 {
 	break_ = false;
 }
+*/
 
 void Engine::Exit()
 {
@@ -315,4 +317,5 @@ void Engine::onClose()
 {
 	if (state_)
 		state_->DoExit();
+	EmscriptenShutdown();
 }

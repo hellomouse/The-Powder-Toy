@@ -1,3 +1,4 @@
+#if FALSE
 #ifndef UPDATE_H_
 #define UPDATE_H_
 
@@ -7,3 +8,4 @@ int update_finish();
 void update_cleanup();
 
 #endif /* UPDATE_H_ */
+#endif

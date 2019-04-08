@@ -1627,12 +1627,14 @@ void GameView::OnKeyPress(int key, int scan, bool repeat, bool shift, bool ctrl,
 		else
 			c->AdjustBrushSize(-1, !alt, shiftBehaviour, ctrlBehaviour);
 		break;
+	/*
 	case SDL_SCANCODE_I:
 		if(ctrl)
 			c->Install();
 		else
 			c->InvertAirSim();
 		break;
+	*/
 	case SDL_SCANCODE_SEMICOLON:
 		if (ctrl)
 			c->SetReplaceModeFlags(c->GetReplaceModeFlags()^SPECIFIC_DELETE);

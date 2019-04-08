@@ -38,6 +38,12 @@ const char *const introTextData =
 #ifdef X86
 	"X86 "
 #endif
+#ifdef __EMSCRIPTEN__
+	"EMSCRIPTEN "
+#endif
+#ifdef WASM
+	"WASM "
+#endif
 #ifdef X86_SSE
 	"X86_SSE "
 #endif

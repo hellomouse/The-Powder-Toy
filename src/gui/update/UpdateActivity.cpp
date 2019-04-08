@@ -1,3 +1,4 @@
+#if FALSE
 #include <bzlib.h>
 #include "gui/dialogues/ConfirmPrompt.h"
 #include "gui/interface/Engine.h"
@@ -166,4 +167,4 @@ void UpdateActivity::NotifyError(Task * sender)
 
 UpdateActivity::~UpdateActivity() {
 }
-
+#endif

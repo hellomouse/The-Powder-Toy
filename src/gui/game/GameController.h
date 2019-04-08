@@ -166,10 +166,10 @@ public:
 
 	void RemoveNotification(Notification * notification);
 
-	void NotifyUpdateAvailable(Client * sender) override;
+	// void NotifyUpdateAvailable(Client * sender) override;
 	void NotifyAuthUserChanged(Client * sender) override;
 	void NotifyNewNotification(Client * sender, std::pair<String, ByteString> notification) override;
-	void RunUpdater();
+	// void RunUpdater();
 };
 
 #endif // GAMECONTROLLER_H

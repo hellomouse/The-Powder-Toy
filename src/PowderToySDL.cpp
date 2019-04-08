@@ -51,6 +51,9 @@
 #include "gui/interface/Keys.h"
 #include "gui/Style.h"
 
+#include <emscripten.h>
+#include <emscripten/html5.h>
+
 using namespace std;
 
 #define INCLUDE_SYSWM
@@ -67,6 +70,9 @@ bool altFullscreen = false;
 bool forceIntegerScaling = true;
 bool resizable = false;
 
+double frameTimeAvg = 0.0f, correctedFrameTimeAvg = 0.0f;
+// keep global reference to this thing so we can poke it from other places
+GameController * gameController = NULL;
 
 void ClipboardPush(ByteString text)
 {
@@ -83,6 +89,7 @@ int GetModifiers()
 	return SDL_GetModState();
 }
 
+/* these won't exactly do anything
 void LoadWindowPosition()
 {
 	int savedWindowX = Client::Ref().GetPrefInteger("WindowX", INT_MAX);
@@ -124,6 +131,7 @@ void SaveWindowPosition()
 	Client::Ref().SetPref("WindowX", x - borderLeft);
 	Client::Ref().SetPref("WindowY", y - borderTop);
 }
+*/
 
 void CalculateMousePosition(int *x, int *y)
 {
@@ -155,16 +163,23 @@ void blit(pixel * vid)
 }
 #endif
 
-void RecreateWindow();
+void CreateWindow();
 int SDLOpen()
 {
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
-	{
+	// pthreads workaround for emscripten
+	EmscriptenWebGLContextAttributes attr;
+	emscripten_webgl_init_context_attributes(&attr);
+	attr.majorVersion = 2; attr.minorVersion = 0;
+	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context(0, &attr);
+	emscripten_webgl_make_context_current(ctx);
+
+	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+	
 		fprintf(stderr, "Initializing SDL: %s\n", SDL_GetError());
 		return 1;
 	}
 
-	RecreateWindow();
+	CreateWindow();
 
 	int displayIndex = SDL_GetWindowDisplayIndex(sdl_window);
 	if (displayIndex >= 0)
@@ -199,7 +214,6 @@ int SDLOpen()
 	SDL_SetWindowIcon(sdl_window, icon);
 	SDL_FreeSurface(icon);
 #endif
-	atexit(SDL_Quit);
 
 	return 0;
 }
@@ -217,6 +231,7 @@ void SDLSetScreen(int scale_, bool resizable_, bool fullscreen_, bool altFullscr
 	// Recreate the window when toggling fullscreen, due to occasional issues
 	// Also recreate it when enabling resizable windows, to fix bugs on windows,
 	//  see https://github.com/jacob1/The-Powder-Toy/issues/24
+	/* can't do that in emscripten
 	if (changingFullscreen || (changingResizable && resizable && !fullscreen))
 	{
 		RecreateWindow();
@@ -224,6 +239,7 @@ void SDLSetScreen(int scale_, bool resizable_, bool fullscreen_, bool altFullscr
 	}
 	if (changingResizable)
 		SDL_RestoreWindow(sdl_window);
+	*/
 
 	SDL_SetWindowSize(sdl_window, WINDOWW * scale, WINDOWH * scale);
 	SDL_RenderSetIntegerScale(sdl_renderer, forceIntegerScaling && fullscreen ? SDL_TRUE : SDL_FALSE);
@@ -231,12 +247,12 @@ void SDLSetScreen(int scale_, bool resizable_, bool fullscreen_, bool altFullscr
 	if (fullscreen)
 		flags = altFullscreen ? SDL_WINDOW_FULLSCREEN : SDL_WINDOW_FULLSCREEN_DESKTOP;
 	SDL_SetWindowFullscreen(sdl_window, flags);
-	if (fullscreen)
-		SDL_RaiseWindow(sdl_window);
-	SDL_SetWindowResizable(sdl_window, resizable ? SDL_TRUE : SDL_FALSE);
+	//if (fullscreen)
+	//	SDL_RaiseWindow(sdl_window);
+	//SDL_SetWindowResizable(sdl_window, resizable ? SDL_TRUE : SDL_FALSE);
 }
 
-void RecreateWindow()
+void CreateWindow()
 {
 	unsigned int flags = 0;
 	if (fullscreen)
@@ -244,30 +260,32 @@ void RecreateWindow()
 	if (resizable && !fullscreen)
 		flags |= SDL_WINDOW_RESIZABLE;
 
+	/* can't destroy window because it's a canvas
 	if (sdl_texture)
 		SDL_DestroyTexture(sdl_texture);
 	if (sdl_renderer)
 		SDL_DestroyRenderer(sdl_renderer);
 	if (sdl_window)
 	{
-		SaveWindowPosition();
+		// SaveWindowPosition();
 		SDL_DestroyWindow(sdl_window);
 	}
+	*/
 
-	sdl_window = SDL_CreateWindow("The Powder Toy", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOWW * scale, WINDOWH * scale,
+	sdl_window = SDL_CreateWindow("The Powder Toy", 0, 0, WINDOWW * scale, WINDOWH * scale,
 	                              flags);
 	sdl_renderer = SDL_CreateRenderer(sdl_window, -1, 0);
 	SDL_RenderSetLogicalSize(sdl_renderer, WINDOWW, WINDOWH);
 	if (forceIntegerScaling && fullscreen)
 		SDL_RenderSetIntegerScale(sdl_renderer, SDL_TRUE);
 	sdl_texture = SDL_CreateTexture(sdl_renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, WINDOWW, WINDOWH);
-	SDL_RaiseWindow(sdl_window);
+	// SDL_RaiseWindow(sdl_window);
 	//Uncomment this to enable resizing
 	//SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 	//SDL_SetWindowResizable(sdl_window, SDL_TRUE);
 
-	if (!Client::Ref().IsFirstRun())
-		LoadWindowPosition();
+	// if (!Client::Ref().IsFirstRun())
+	//	LoadWindowPosition();
 }
 
 unsigned int GetTicks()
@@ -275,6 +293,7 @@ unsigned int GetTicks()
 	return SDL_GetTicks();
 }
 
+/* no arguments in emscripten
 std::map<ByteString, ByteString> readArguments(int argc, char * argv[])
 {
 	std::map<ByteString, ByteString> arguments;
@@ -343,13 +362,14 @@ std::map<ByteString, ByteString> readArguments(int argc, char * argv[])
 	}
 	return arguments;
 }
+*/
 
 int elapsedTime = 0, currentTime = 0, lastTime = 0, currentFrame = 0;
 unsigned int lastTick = 0;
 unsigned int lastFpsUpdate = 0;
 float fps = 0;
 ui::Engine * engine = NULL;
-bool showDoubleScreenDialog = false;
+// bool showDoubleScreenDialog = false;
 float currentWidth, currentHeight;
 
 int mousex = 0, mousey = 0;
@@ -388,6 +408,8 @@ void EventProcess(SDL_Event event)
 			x *= -1;
 			y *= -1;
 		}
+
+		printf("%i,%i\n", x, y);
 
 		engine->onMouseWheel(mousex, mousey, y); // TODO: pass x?
 		break;
@@ -475,6 +497,7 @@ void EventProcess(SDL_Event event)
 	}
 }
 
+/* TODO: maybe allow scaling the thing
 void DoubleScreenDialog()
 {
 	StringBuilder message;
@@ -487,70 +510,90 @@ void DoubleScreenDialog()
 		engine->SetScale(1);
 	}
 }
+*/
 
-void EngineProcess()
-{
-	double frameTimeAvg = 0.0f, correctedFrameTimeAvg = 0.0f;
+void EmscriptenShutdown() {
+	Client::Ref().SetPref("Scale", ui::Engine::Ref().GetScale());
+	ui::Engine::Ref().CloseWindow();
+	delete gameController;
+	delete ui::Engine::Ref().g;
+	Client::Ref().Shutdown();
+	SDL_Quit();
+	emscripten_cancel_main_loop();
+	// report shutdown to js
+	EM_ASM(Module.shutdown());
+}
+
+// called from js on page exit
+EMSCRIPTEN_KEEPALIVE void Shutdown() {
+	engine->Exit();
+}
+
+void EmscriptenMainLoop() {
+	if (!engine->Running()) return;
 	SDL_Event event;
-	while(engine->Running())
+	int frameStart = SDL_GetTicks();
+	// no breaking things please
+	// if(engine->Broken()) { engine->UnBreak(); break; }
+	event.type = 0;
+	while (SDL_PollEvent(&event))
 	{
-		int frameStart = SDL_GetTicks();
-		if(engine->Broken()) { engine->UnBreak(); break; }
-		event.type = 0;
-		while (SDL_PollEvent(&event))
-		{
-			EventProcess(event);
-			event.type = 0; //Clear last event
-		}
-		if(engine->Broken()) { engine->UnBreak(); break; }
-
-		engine->Tick();
-		engine->Draw();
-
-		if (scale != engine->Scale || fullscreen != engine->Fullscreen ||
-				altFullscreen != engine->GetAltFullscreen() ||
-				forceIntegerScaling != engine->GetForceIntegerScaling() || resizable != engine->GetResizable())
-		{
-			SDLSetScreen(engine->Scale, engine->GetResizable(), engine->Fullscreen, engine->GetAltFullscreen(),
-						 engine->GetForceIntegerScaling());
-		}
-
-#ifdef OGLI
-		blit();
-#else
-		blit(engine->g->vid);
-#endif
-
-		int frameTime = SDL_GetTicks() - frameStart;
-		frameTimeAvg = frameTimeAvg * 0.8 + frameTime * 0.2;
-		int fpsLimit = ui::Engine::Ref().FpsLimit;
-		if(fpsLimit > 2)
-		{
-			double offset = 1000.0 / fpsLimit - frameTimeAvg;
-			if(offset > 0)
-				SDL_Delay(offset + 0.5);
-		}
-		int correctedFrameTime = SDL_GetTicks() - frameStart;
-		correctedFrameTimeAvg = correctedFrameTimeAvg * 0.95 + correctedFrameTime * 0.05;
-		if (frameStart - lastFpsUpdate > 200)
-		{
-			engine->SetFps(1000.0 / correctedFrameTimeAvg);
-			lastFpsUpdate = frameStart;
-		}
-		if (frameStart - lastTick > 100)
-		{
-			lastTick = frameStart;
-			Client::Ref().Tick();
-		}
-		if (showDoubleScreenDialog)
-		{
-			showDoubleScreenDialog = false;
-			DoubleScreenDialog();
-		}
+		EventProcess(event);
+		event.type = 0; //Clear last event
 	}
-#ifdef DEBUG
-	std::cout << "Breaking out of EngineProcess" << std::endl;
+	// if(engine->Broken()) { engine->UnBreak(); break; }
+
+	engine->Tick();
+	engine->Draw();
+
+	if (scale != engine->Scale || fullscreen != engine->Fullscreen ||
+			altFullscreen != engine->GetAltFullscreen() ||
+			forceIntegerScaling != engine->GetForceIntegerScaling() || resizable != engine->GetResizable())
+	{
+		SDLSetScreen(engine->Scale, engine->GetResizable(), engine->Fullscreen, engine->GetAltFullscreen(),
+						engine->GetForceIntegerScaling());
+	}
+
+	// prevent weird error
+	if (!engine->Running()) return;
+#ifdef OGLI
+	blit();
+#else
+	blit(engine->g->vid);
 #endif
+
+	int frameTime = SDL_GetTicks() - frameStart;
+	frameTimeAvg = frameTimeAvg * 0.8 + frameTime * 0.2;
+	int fpsLimit = ui::Engine::Ref().FpsLimit;
+	if(fpsLimit > 2)
+	{
+		double offset = 1000.0 / fpsLimit - frameTimeAvg;
+		if(offset > 0)
+			SDL_Delay(offset + 0.5);
+	}
+	int correctedFrameTime = SDL_GetTicks() - frameStart;
+	correctedFrameTimeAvg = correctedFrameTimeAvg * 0.95 + correctedFrameTime * 0.05;
+	if (frameStart - lastFpsUpdate > 200)
+	{
+		engine->SetFps(1000.0 / correctedFrameTimeAvg);
+		lastFpsUpdate = frameStart;
+	}
+	if (frameStart - lastTick > 100)
+	{
+		lastTick = frameStart;
+		Client::Ref().Tick();
+	}
+	/*
+	if (showDoubleScreenDialog)
+	{
+		showDoubleScreenDialog = false;
+		DoubleScreenDialog();
+	}
+	*/
+}
+
+void EmscriptenLaunchMainLoop() {
+	emscripten_set_main_loop(EmscriptenMainLoop, -1, 0);
 }
 
 void BlueScreen(String detailMessage)
@@ -579,6 +622,7 @@ void BlueScreen(String detailMessage)
 	currentY += height + 4;
 
 	//Death loop
+	/* no crashing page on death (does this even get called)
 	SDL_Event event;
 	while(true)
 	{
@@ -591,8 +635,14 @@ void BlueScreen(String detailMessage)
 		blit(engine->g->vid);
 #endif
 	}
+	*/
+	// kill the event loop
+	emscripten_cancel_main_loop();
+	// report error to js
+	EM_ASM(Module.crashed());
 }
 
+/* not supported
 void SigHandler(int signal)
 {
 	switch(signal){
@@ -610,6 +660,7 @@ void SigHandler(int signal)
 		break;
 	}
 }
+*/
 
 void ChdirToDataDirectory()
 {
@@ -636,7 +687,7 @@ int main(int argc, char * argv[])
 	currentWidth = WINDOWW;
 	currentHeight = WINDOWH;
 
-
+	/*
 	std::map<ByteString, ByteString> arguments = readArguments(argc, argv);
 
 	if(arguments["ddir"].length())
@@ -647,6 +698,8 @@ int main(int argc, char * argv[])
 #endif
 	else
 		ChdirToDataDirectory();
+	*/
+	if (chdir("persistent")) perror("chdir to persistent data directory");
 
 	scale = Client::Ref().GetPrefInteger("Scale", 1);
 	resizable = Client::Ref().GetPrefBool("Resizable", false);
@@ -654,7 +707,7 @@ int main(int argc, char * argv[])
 	altFullscreen = Client::Ref().GetPrefBool("AltFullscreen", false);
 	forceIntegerScaling = Client::Ref().GetPrefBool("ForceIntegerScaling", true);
 
-
+	/* no command line arguments or proxies here
 	if(arguments["kiosk"] == "true")
 	{
 		fullscreen = true;
@@ -693,6 +746,7 @@ int main(int argc, char * argv[])
 	}
 
 	Client::Ref().Initialise(proxyString);
+	*/
 
 	// TODO: maybe bind the maximum allowed scale to screen size somehow
 	if(scale < 1 || scale > 10)
@@ -700,6 +754,7 @@ int main(int argc, char * argv[])
 
 	SDLOpen();
 	// TODO: mabe make a nice loop that automagically finds the optimal scale
+	/*
 	if (Client::Ref().IsFirstRun() && desktopWidth > WINDOWW*2+30 && desktopHeight > WINDOWH*2+30)
 	{
 		scale = 2;
@@ -707,6 +762,7 @@ int main(int argc, char * argv[])
 		SDL_SetWindowSize(sdl_window, WINDOWW * 2, WINDOWH * 2);
 		showDoubleScreenDialog = true;
 	}
+	*/
 
 #ifdef OGLI
 	SDL_GL_SetAttribute (SDL_GL_DOUBLEBUFFER, 1);
@@ -732,6 +788,7 @@ int main(int argc, char * argv[])
 	engine->Begin(WINDOWW, WINDOWH);
 	engine->SetFastQuit(Client::Ref().GetPrefBool("FastQuit", true));
 
+/* not supported
 #if !defined(DEBUG) && !defined(_DEBUG)
 	//Get ready to catch any dodgy errors
 	signal(SIGSEGV, SigHandler);
@@ -739,6 +796,7 @@ int main(int argc, char * argv[])
 	signal(SIGILL, SigHandler);
 	signal(SIGABRT, SigHandler);
 #endif
+*/
 
 #ifdef X86_SSE
 	_MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
@@ -747,7 +805,6 @@ int main(int argc, char * argv[])
 	_MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 #endif
 
-	GameController * gameController = NULL;
 #if !defined(DEBUG) && !defined(_DEBUG)
 	try {
 #endif
@@ -756,6 +813,7 @@ int main(int argc, char * argv[])
 		gameController = new GameController();
 		engine->ShowWindow(gameController->GetView());
 
+		/* arguments not supported
 		if(arguments["open"].length())
 		{
 #ifdef DEBUG
@@ -839,6 +897,7 @@ int main(int argc, char * argv[])
 				new ErrorMessage("Error", ByteString(e.what()).FromUtf8());
 			}
 		}
+		*/
 
 #else // FONTEDITOR
 		if(argc <= 1)
@@ -846,9 +905,9 @@ int main(int argc, char * argv[])
 		engine->ShowWindow(new FontEditor(argv[1]));
 #endif
 
-		EngineProcess();
+		EmscriptenLaunchMainLoop();
 
-		SaveWindowPosition();
+		// SaveWindowPosition();
 
 #if !defined(DEBUG) && !defined(_DEBUG)
 	}
@@ -858,11 +917,7 @@ int main(int argc, char * argv[])
 	}
 #endif
 
-	Client::Ref().SetPref("Scale", ui::Engine::Ref().GetScale());
-	ui::Engine::Ref().CloseWindow();
-	delete gameController;
-	delete ui::Engine::Ref().g;
-	Client::Ref().Shutdown();
+	EM_ASM(Module.started());
 	return 0;
 }
 

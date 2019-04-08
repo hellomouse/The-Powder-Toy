@@ -6,6 +6,8 @@
 #include "gui/interface/ScrollPanel.h"
 #include "PowderToy.h"
 
+#include <emscripten.h>
+
 ConfirmPrompt::ConfirmPrompt(String title, String message, ConfirmDialogueCallback * callback_):
 	ui::Window(ui::Point(-1, -1), ui::Point(250, 35)),
 	callback(callback_)
@@ -130,8 +132,13 @@ ConfirmPrompt::ConfirmPrompt(String title, String message, String buttonText, Co
 	MakeActiveWindow();
 }
 
+EM_JS(bool, JSBlockingConfirm, (const char* str), {
+	return window.confirm(UTF8ToString(str));
+});
+
 bool ConfirmPrompt::Blocking(String title, String message, String buttonText)
 {
+	/* lol g'bye
 	class BlockingPromptCallback: public ConfirmDialogueCallback {
 	public:
 		bool & outputResult;
@@ -141,14 +148,18 @@ bool ConfirmPrompt::Blocking(String title, String message, String buttonText)
 				outputResult = true;
 			else
 				outputResult = false;
-			ui::Engine::Ref().Break();
+			// ui::Engine::Ref().Break();
 		}
 		virtual ~BlockingPromptCallback() { }
 	};
 	bool result;
 	new ConfirmPrompt(title, message, buttonText, new BlockingPromptCallback(result));
-	EngineProcess();
+	// EngineProcess();
 	return result;
+	*/
+
+	// buttonText doesn't exactly work
+	return JSBlockingConfirm((title + "\n\n" + message).ToUtf8().c_str());
 }
 
 void ConfirmPrompt::OnDraw()

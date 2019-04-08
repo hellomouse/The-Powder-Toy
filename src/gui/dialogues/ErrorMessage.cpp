@@ -5,6 +5,8 @@
 #include "gui/interface/Label.h"
 #include "PowderToy.h"
 
+#include <emscripten.h>
+
 ErrorMessage::ErrorMessage(String title, String message,  ErrorMessageCallback * callback_):
 	ui::Window(ui::Point(-1, -1), ui::Point(200, 35)),
 	callback(callback_)
@@ -50,8 +52,13 @@ ErrorMessage::ErrorMessage(String title, String message,  ErrorMessageCallback *
 	MakeActiveWindow();
 }
 
+EM_JS(void, JSBlockingAlert, (const char* str), {
+	window.alert(UTF8ToString(str));
+});
+
 void ErrorMessage::Blocking(String title, String message)
 {
+	/*
 	class BlockingDismissCallback: public ErrorMessageCallback {
 	public:
 		BlockingDismissCallback() {}
@@ -62,6 +69,8 @@ void ErrorMessage::Blocking(String title, String message)
 	};
 	new ErrorMessage(title, message, new BlockingDismissCallback());
 	EngineProcess();
+	*/
+	JSBlockingAlert((title + "\n\n" + message).ToUtf8().c_str());
 }
 
 void ErrorMessage::OnDraw()

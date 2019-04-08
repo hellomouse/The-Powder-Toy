@@ -178,11 +178,11 @@ int luaopen_bit(lua_State *L)
       msg = "arithmetic right-shift broken";
     luaL_error(L, "bit library self-test failed (%s)", msg);
   }
-//#if LUA_VERSION_NUM < 502
+#if LUA_VERSION_NUM < 502
   luaL_register(L, "bit", bit_funcs);
-//#else
-//  luaL_newlib(L, bit_funcs);
-//#endif
+#else
+  luaL_newlib(L, bit_funcs);
+#endif
   return 1;
 }
 #endif

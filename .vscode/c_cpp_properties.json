@@ -1,0 +1,35 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "/usr/include",
+                "/usr/include/x86_64-linux-gnu",
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/deps/lua5.2/src",
+                "${workspaceFolder}/deps/bzip2",
+                "${workspaceFolder}/deps/fftw3/api",
+                "${workspaceFolder}/deps/zlib",
+                "~/opt/emsdk/emscripten/1.38.30/system/include"
+            ],
+            "defines": [
+                "_64BIT",
+                "_REENTRANT",
+                "LUA_R_INCL",
+                "LUA_COMPAT_ALL",
+                "LUA_USE_LINUX",
+                "SDL_INC",
+                "LIN",
+                "X86",
+                "GRAVFFT",
+                "LUACONSOLE",
+                "__EMSCRIPTEN__"
+            ],
+            "compilerPath": "/usr/bin/gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

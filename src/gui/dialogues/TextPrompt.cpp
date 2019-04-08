@@ -1,10 +1,13 @@
 #include <iostream>
 #include "TextPrompt.h"
+#include "common/String.h"
 #include "gui/interface/Label.h"
 #include "gui/interface/Button.h"
 #include "gui/interface/Engine.h"
 #include "gui/Style.h"
 #include "PowderToy.h"
+
+#include <emscripten.h>
 
 class CloseAction: public ui::ButtonAction
 {
@@ -77,8 +80,21 @@ TextPrompt::TextPrompt(String title, String message, String text, String placeho
 	MakeActiveWindow();
 }
 
+EM_JS(const char*, JSBlockingPrompt, (const char* message, const char* placeholder), {
+	let result = window.prompt(UTF8ToString(message), UTF8ToString(placeholder));
+	let returnString;
+	if (!result) returnString = '';
+	else returnString = result;
+	// who likes heaps
+	let lengthBytes = lengthBytesUTF8(returnString) + 1;
+	let allocated = _malloc(lengthBytes);
+	stringToUTF8(returnString, allocated, lengthBytes + 1);
+	return allocated;
+});
+
 String TextPrompt::Blocking(String title, String message, String text, String placeholder, bool multiline)
 {
+	/*
 	String returnString = "";
 
 	class BlockingTextCallback: public TextDialogueCallback {
@@ -98,6 +114,11 @@ String TextPrompt::Blocking(String title, String message, String text, String pl
 	EngineProcess();
 
 	return returnString;
+	*/
+	// we can't exactly do multiline prompts, but none of the blocking TextPrompts use multiline
+	String prompt = title + "\n\n" + message;
+	if (placeholder.size()) prompt += "\n(" + placeholder + ")";
+	return ByteString(JSBlockingPrompt(prompt.ToUtf8().c_str(), text.ToUtf8().c_str())).FromUtf8();
 }
 
 void TextPrompt::OnDraw()

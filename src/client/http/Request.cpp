@@ -5,30 +5,36 @@
 namespace http
 {
 	Request::Request(ByteString uri_):
+		// TODO: EVERYTHING
 		uri(uri_),
-		rm_total(0),
-		rm_done(0),
+		// rm_total(0),
+		// rm_done(0),
 		rm_finished(false),
 		rm_canceled(false),
 		rm_started(false),
-		added_to_multi(false),
-		status(0),
-		headers(NULL),
-#ifdef REQUEST_USE_CURL_MIMEPOST
-		post_fields(NULL)
+		// added_to_multi(false),
+		status(0)
+		// headers(NULL),
+// #ifdef REQUEST_USE_CURL_MIMEPOST
+		// post_fields(NULL)
+/*
 #else
 		post_fields_first(NULL),
 		post_fields_last(NULL)
 #endif
+*/
 	{
+		/* TODO: dummy
 		pthread_cond_init(&done_cv, NULL);
 		pthread_mutex_init(&rm_mutex, NULL);
 		easy = curl_easy_init();
 		RequestManager::Ref().AddRequest(this);
+		*/
 	}
 
 	Request::~Request()
 	{
+		/* TODO: dummy
 		curl_easy_cleanup(easy);
 #ifdef REQUEST_USE_CURL_MIMEPOST
 		curl_mime_free(post_fields);
@@ -38,16 +44,19 @@ namespace http
 		curl_slist_free_all(headers);
 		pthread_mutex_destroy(&rm_mutex);
 		pthread_cond_destroy(&done_cv);
+		*/
 	}
 
 	void Request::AddHeader(ByteString name, ByteString value)
 	{
-		headers = curl_slist_append(headers, (name + ": " + value).c_str());
+		// TODO: dummy
+		// headers = curl_slist_append(headers, (name + ": " + value).c_str());
 	}
 
 	// add post data to a request
 	void Request::AddPostData(std::map<ByteString, ByteString> data)
 	{
+		/* TODO: dummy
 		if (!data.size())
 		{
 			return;
@@ -79,6 +88,7 @@ namespace http
 			post_fields_map.insert(data.begin(), data.end());
 #endif
 		}
+		*/
 	}
 
 	// add userID and sessionID headers to the request
@@ -109,6 +119,9 @@ namespace http
 	// start the request thread
 	void Request::Start()
 	{
+		// TODO: dummy
+		rm_started = true;
+		/*
 		if (CheckStarted() || CheckDone())
 		{
 			return;
@@ -182,13 +195,19 @@ namespace http
 		pthread_mutex_lock(&rm_mutex);
 		rm_started = true;
 		pthread_mutex_unlock(&rm_mutex);
-		RequestManager::Ref().StartRequest(this);
+		// RequestManager::Ref().StartRequest(this);
+		*/
 	}
 
 
 	// finish the request (if called before the request is done, this will block)
 	ByteString Request::Finish(int *status_out)
 	{
+		// TODO: dummy
+		// CURLE_COULDNT_CONNECT
+		*status_out = 607;
+		return "";
+		/*
 		if (CheckCanceled())
 		{
 			return ""; // shouldn't happen but just in case
@@ -210,10 +229,15 @@ namespace http
 
 		RequestManager::Ref().RemoveRequest(this);
 		return response_out;
+		*/
 	}
 
 	void Request::CheckProgress(int *total, int *done)
 	{
+		// TODO: dummy
+		*total = 1;
+		*done = 1;
+		/*
 		pthread_mutex_lock(&rm_mutex);
 		if (total)
 		{
@@ -224,43 +248,56 @@ namespace http
 			*done = rm_done;
 		}
 		pthread_mutex_unlock(&rm_mutex);
+		*/
 	}
 
 	// returns true if the request has finished
 	bool Request::CheckDone()
 	{
+		return true;
+		/* TODO: dummy
 		pthread_mutex_lock(&rm_mutex);
 		bool ret = rm_finished;
 		pthread_mutex_unlock(&rm_mutex);
 		return ret;
+		*/
 	}
 
 	// returns true if the request was canceled
 	bool Request::CheckCanceled()
 	{
+		return false;
+		/* TODO: dummy
 		pthread_mutex_lock(&rm_mutex);
 		bool ret = rm_canceled;
 		pthread_mutex_unlock(&rm_mutex);
 		return ret;
+		*/
 	}
 
 	// returns true if the request is running
 	bool Request::CheckStarted()
 	{
+		return rm_started;
+		/* TODO: dummy
 		pthread_mutex_lock(&rm_mutex);
 		bool ret = rm_started;
 		pthread_mutex_unlock(&rm_mutex);
 		return ret;
+		*/
 
 	}
 
 	// cancels the request, the request thread will delete the Request* when it finishes (do not use Request in any way after canceling)
 	void Request::Cancel()
 	{
+		rm_canceled = true;
+		/* TODO: dummy
 		pthread_mutex_lock(&rm_mutex);
 		rm_canceled = true;
 		pthread_mutex_unlock(&rm_mutex);
-		RequestManager::Ref().RemoveRequest(this);
+		// RequestManager::Ref().RemoveRequest(this);
+		*/
 	}
 
 	ByteString Request::Simple(ByteString uri, int *status, std::map<ByteString, ByteString> post_data)

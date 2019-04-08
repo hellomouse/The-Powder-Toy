@@ -17,3 +17,20 @@ Interface General:
 
 Interface Elements:
 	Vertical Scrolling for Textbox,
+
+WebAssembly:
+	Libraries:
+		lua5.2
+		fftw3f
+		bz2
+		z
+		curl (replace with emscripten fetch api soon)
+	Main interface (SDL)
+	Compile
+	Actually use scons (maybe)
+	Fancy html page
+	Set fps
+	Rewrite config code to use js
+	Set scale
+	Networking (emscripten fetch api)
+	Origin trial AjQM9c+T8DIQFk1T9TcamvUcR6UtTfX6eP7VcKDoU6cJlAH695CQ9uFxhv0+seIdB+yx7FjptPOTQoXQxRLvHgIAAABteyJvcmlnaW4iOiJodHRwczovL2hlbGxvbW91c2UubmV0OjQ0MyIsImZlYXR1cmUiOiJXZWJBc3NlbWJseVRocmVhZHMiLCJleHBpcnkiOjE1NTgyOTg3OTEsImlzU3ViZG9tYWluIjp0cnVlfQ==

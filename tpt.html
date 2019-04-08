@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en-us">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta http-equiv="origin-trial" content="AjQM9c+T8DIQFk1T9TcamvUcR6UtTfX6eP7VcKDoU6cJlAH695CQ9uFxhv0+seIdB+yx7FjptPOTQoXQxRLvHgIAAABteyJvcmlnaW4iOiJodHRwczovL2hlbGxvbW91c2UubmV0OjQ0MyIsImZlYXR1cmUiOiJXZWJBc3NlbWJseVRocmVhZHMiLCJleHBpcnkiOjE1NTgyOTg3OTEsImlzU3ViZG9tYWluIjp0cnVlfQ==">
+        <title>The Powder Toy</title>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+        <br>
+        <div id="status"></div>
+        <script type='text/javascript'>
+        {
+            let statusElement = document.getElementById('status');
+            let canvas = document.getElementById('canvas');
+            canvas.addEventListener('webglcontextlost', e => {
+                alert('WebGL context lost. You will need to reload the page.');
+                e.preventDefault(); 
+            }, false);
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+            canvas.style.backgroundColor = 'black';
+
+            let beforeUnloadListener = event => {
+                if (!Module.isRunning) return;
+                // open close prompt so we have time to quit
+                Module.setStatus('Page closed');
+                // call tpt engine shutdown
+                Module._Shutdown();
+                event.preventDefault();
+                event.returnValue = '';
+            }
+
+            /** Called when the runtime is initialized */
+            async function start() {
+                // direction: true -> load from storage, false -> write to storage
+                FS.syncfsAsync = function syncfsAsync(direction) {
+                    return new Promise((resolve, reject) => {
+                        FS.syncfs(direction, err => {
+                            if (err) return reject(err);
+                            resolve();
+                        });
+                    });
+                };
+                /** Mounts IndexedDB-backed persistent file store at /persistent */
+                async function mountPersistent() {
+                    Module.setStatus('Setting up persistent storage...');
+                    FS.mkdir('/persistent');
+                    FS.mount(IDBFS, {}, '/persistent');
+                    // load from persistent storage
+                    await FS.syncfsAsync(true);
+                    return;
+                }
+                await Promise.all([
+                    mountPersistent()
+                ]);
+                Module.setStatus('Starting...');
+                window.addEventListener('beforeunload', beforeUnloadListener);
+                Module._main();
+            }
+
+            /** Cleans up after exit */
+            async function handleExit() {
+                Module.isRunning = false;
+                window.removeEventListener('beforeunload', beforeUnloadListener);
+                await syncfs();
+            }
+
+            /** Write to persistent storage */
+            function syncfs() {
+                Module.setStatus('Saving...');
+                FS.syncfsAsync(false);
+                Module.setStatus('Saving... done');
+            }
+
+            /** Called when the main loop has started */
+            function started() {
+                Module.setStatus('Ready');
+                Module.isRunning = true;
+            }
+
+            /** Called when the user has quit the program */
+            async function shutdown() {
+                await handleExit();
+                Module.setStatus('Shutdown');
+            }
+
+            /** Called when the program has crashed */
+            async function crashed() {
+                await handleExit();
+                Module.setStatus('Blue screen');
+            }
+
+            window.Module = {
+                noInitialRun: true,
+                preRun: [],
+                postRun: [],
+                print(...text) {
+                    console.log(text.join(' '));
+                },
+                printErr(...text) {
+                    console.error(text.join(' '));
+                },
+                canvas,
+                setStatus(text) {
+                    if (!text) return;
+                    text = 'Status: ' + text;
+                    console.log(text);
+                    statusElement.innerHTML = text;
+                },
+                totalDependencies: 0,
+                monitorRunDependencies: function (left) {
+                    this.totalDependencies = Math.max(this.totalDependencies, left);
+                    Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies - left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+                },
+                onRuntimeInitialized: start,
+                shutdown,
+                crashed,
+                started,
+                syncfs,
+                isRunning: false
+            };
+            Module.setStatus('Downloading...');
+            window.addEventListener('error', event => Module.setStatus('Errored (see console)'));
+
+            let ASSERTIONS = 1;
+            // Copyright 2017 The Emscripten Authors.  All rights reserved.
+            // Emscripten is available under two separate licenses, the MIT license and the
+            // University of Illinois/NCSA Open Source License.  Both these licenses can be
+            // found in the LICENSE file.
+
+            // Prefix of data URIs emitted by SINGLE_FILE and related options.
+            let dataURIPrefix = 'data:application/octet-stream;base64,';
+
+            // Indicates whether filename is a base64 data URI.
+            function isDataURI(filename) {
+                return String.prototype.startsWith ?
+                    filename.startsWith(dataURIPrefix) :
+                    filename.indexOf(dataURIPrefix) === 0;
+            }
+
+
+
+            // Copied from https://github.com/strophe/strophejs/blob/e06d027/src/polyfills.js#L149
+
+            // This code was written by Tyler Akins and has been placed in the
+            // public domain.  It would be nice if you left this header intact.
+            // Base64 code from Tyler Akins -- http://rumkin.com
+
+            /**
+             * Decodes a base64 string.
+             * @param {String} input The string to decode.
+             */
+            let decodeBase64 = typeof atob === 'function' ? atob : function (input) {
+                let keyStr = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+
+                let output = '';
+                let chr1, chr2, chr3;
+                let enc1, enc2, enc3, enc4;
+                let i = 0;
+                // remove all characters that are not A-Z, a-z, 0-9, +, /, or =
+                input = input.replace(/[^A-Za-z0-9\+\/\=]/g, '');
+                do {
+                    enc1 = keyStr.indexOf(input.charAt(i++));
+                    enc2 = keyStr.indexOf(input.charAt(i++));
+                    enc3 = keyStr.indexOf(input.charAt(i++));
+                    enc4 = keyStr.indexOf(input.charAt(i++));
+
+                    chr1 = (enc1 << 2) | (enc2 >> 4);
+                    chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+                    chr3 = ((enc3 & 3) << 6) | enc4;
+
+                    output = output + String.fromCharCode(chr1);
+
+                    if (enc3 !== 64) {
+                        output = output + String.fromCharCode(chr2);
+                    }
+                    if (enc4 !== 64) {
+                        output = output + String.fromCharCode(chr3);
+                    }
+                } while (i < input.length);
+                return output;
+            };
+
+            // Converts a string of base64 into a byte array.
+            // Throws error on invalid input.
+            function intArrayFromBase64(s) {
+                if (typeof ENVIRONMENT_IS_NODE === 'boolean' && ENVIRONMENT_IS_NODE) {
+                    let buf;
+                    try {
+                        buf = Buffer.from(s, 'base64');
+                    } catch (_) {
+                        buf = new Buffer(s, 'base64');
+                    }
+                    return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+                }
+
+                try {
+                    let decoded = decodeBase64(s);
+                    let bytes = new Uint8Array(decoded.length);
+                    for (let i = 0; i < decoded.length; ++i) {
+                        bytes[i] = decoded.charCodeAt(i);
+                    }
+                    return bytes;
+                } catch (_) {
+                    throw new Error('Converting base64 string to bytes failed.');
+                }
+            }
+
+            // If filename is a base64 data URI, parses and returns data (Buffer on node,
+            // Uint8Array otherwise). If filename is not a base64 data URI, returns undefined.
+            function tryParseAsDataURI(filename) {
+                if (!isDataURI(filename)) {
+                    return;
+                }
+
+                return intArrayFromBase64(filename.slice(dataURIPrefix.length));
+            }
+
+
+            // Copyright 2017 The Emscripten Authors.  All rights reserved.
+            // Emscripten is available under two separate licenses, the MIT license and the
+            // University of Illinois/NCSA Open Source License.  Both these licenses can be
+            // found in the LICENSE file.
+
+            /** @type {function(string, boolean=, number=)} */
+            function intArrayFromString(stringy, dontAddNull, length) {
+                let len = length > 0 ? length : lengthBytesUTF8(stringy) + 1;
+                let u8array = new Array(len);
+                let numBytesWritten = stringToUTF8Array(stringy, u8array, 0, u8array.length);
+                if (dontAddNull) u8array.length = numBytesWritten;
+                return u8array;
+            }
+
+            function intArrayToString(array) {
+                let ret = [];
+                for (let i = 0; i < array.length; i++) {
+                    let chr = array[i];
+                    if (chr > 0xFF) {
+                        if (ASSERTIONS) {
+                            assert(false, 'Character code ' + chr + ' (' + String.fromCharCode(chr) + ')  at offset ' + i + ' not in 0x00-0xFF.');
+                        }
+                        chr &= 0xFF;
+                    }
+                    ret.push(String.fromCharCode(chr));
+                }
+                return ret.join('');
+            }
+
+
+
+            let memoryInitializer = 'tpt.js.mem';
+            memoryInitializer = Module['locateFile'] ? Module['locateFile'](memoryInitializer, '') : memoryInitializer;
+            Module['memoryInitializerRequestURL'] = memoryInitializer;
+            let meminitXHR = Module['memoryInitializerRequest'] = new XMLHttpRequest();
+            meminitXHR.open('GET', memoryInitializer, true);
+            meminitXHR.responseType = 'arraybuffer';
+            meminitXHR.send(null);
+
+            let script = document.createElement('script');
+            script.src = "tpt.js";
+            document.body.appendChild(script);
+        }
+        </script>
+    </body>
+</html>

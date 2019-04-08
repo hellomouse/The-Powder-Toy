@@ -1,3 +1,4 @@
+#if FALSE
 #ifndef UPDATEACTIVITY_H_
 #define UPDATEACTIVITY_H_
 
@@ -15,3 +16,4 @@ public:
 };
 
 #endif /* UPDATEACTIVITY_H_ */
+#endif

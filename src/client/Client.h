@@ -28,6 +28,7 @@ enum RequestStatus {
 	RequestOkay, RequestFailure
 };
 
+#if FALSE
 class UpdateInfo
 {
 public:
@@ -43,6 +44,7 @@ public:
 	UpdateInfo(int major, int minor, int build, ByteString file, String changelog, BuildType type) : File(file), Changelog(changelog), Major(major), Minor(minor), Build(build), Time(0), Type(type) {}
 	UpdateInfo(int time, ByteString file, String changelog, BuildType type) : File(file), Changelog(changelog), Major(0), Minor(0), Build(0), Time(time), Type(type) {}
 };
+#endif
 
 class RequestListener;
 class ClientListener;
@@ -55,11 +57,13 @@ private:
 	String messageOfTheDay;
 	std::vector<std::pair<String, ByteString> > serverNotifications;
 
+	/*
 	http::Request *versionCheckRequest;
 	http::Request *alternateVersionCheckRequest;
 	bool usingAltUpdateServer;
 	bool updateAvailable;
 	UpdateInfo updateInfo;
+	*/
 
 	String lastError;
 	bool firstRun;
@@ -71,7 +75,7 @@ private:
 	//Auth session
 	User authUser;
 
-	void notifyUpdateAvailable();
+	// void notifyUpdateAvailable();
 	void notifyAuthUserChanged();
 	void notifyMessageOfTheDay();
 	void notifyNewNotification(std::pair<String, ByteString> notification);
@@ -97,7 +101,7 @@ public:
 	void ClearAuthorInfo() { authors.clear(); }
 	bool IsAuthorsEmpty() { return authors.size() == 0; }
 
-	UpdateInfo GetUpdateInfo();
+	// UpdateInfo GetUpdateInfo();
 
 	Client();
 	~Client();
@@ -108,7 +112,7 @@ public:
 	ByteString FileOpenDialogue();
 	//std::string FileSaveDialogue();
 
-	bool DoInstallation();
+	// bool DoInstallation();
 
 	std::vector<unsigned char> ReadFile(ByteString filename);
 
@@ -166,7 +170,7 @@ public:
 	}
 	RequestStatus ParseServerReturn(ByteString &result, int status, bool json);
 	void Tick();
-	bool CheckUpdate(http::Request *updateRequest, bool checkSession);
+	// bool CheckUpdate(http::Request *updateRequest, bool checkSession);
 	void Shutdown();
 
 	// preferences functions

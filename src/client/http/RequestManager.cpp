@@ -1,3 +1,4 @@
+#if FALSE
 #include "RequestManager.h"
 #include "Request.h"
 #include "Config.h"
@@ -257,3 +258,4 @@ namespace http
 		pthread_mutex_unlock(&rt_mutex);
 	}
 }
+#endif

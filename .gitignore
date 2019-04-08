@@ -1,6 +1,7 @@
 *nohup.out
 *.swp
 *.o
+*.bc
 *.exe
 *.user
 *.dll
@@ -68,3 +69,5 @@ site_scons/site_tools/gch/*.pyc
 .vscode/ipch
 
 screenshot_*
+emscripten-build/
+.vscode/ipch/

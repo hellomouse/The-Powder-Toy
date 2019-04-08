@@ -44,9 +44,11 @@
 #include "gui/preview/Comment.h"
 #include "ClientListener.h"
 #include "client/http/Request.h"
-#include "client/http/RequestManager.h"
+// #include "client/http/RequestManager.h"
 
 #include "json/json.h"
+
+#include <emscripten.h>
 
 extern "C"
 {
@@ -60,10 +62,12 @@ extern "C"
 
 Client::Client():
 	messageOfTheDay("Fetching the message of the day..."),
+	/* no updating on emscripten
 	versionCheckRequest(nullptr),
 	alternateVersionCheckRequest(nullptr),
 	usingAltUpdateServer(false),
 	updateAvailable(false),
+	*/
 	authUser(0, "")
 {
 	//Read config
@@ -105,13 +109,15 @@ Client::Client():
 
 void Client::Initialise(ByteString proxyString)
 {
+	/*
 	if (GetPrefBool("version.update", false))
 	{
 		SetPref("version.update", false);
 		update_finish();
 	}
+	*/
 
-	http::RequestManager::Ref().Initialise(proxyString);
+	// http::RequestManager::Ref().Initialise(proxyString);
 
 	//Read stamps library
 	std::ifstream stampsLib;
@@ -128,6 +134,7 @@ void Client::Initialise(ByteString proxyString)
 	stampsLib.close();
 
 	//Begin version check
+	/* no
 	versionCheckRequest = new http::Request(SCHEME SERVER "/Startup.json");
 
 	if (authUser.UserID)
@@ -146,6 +153,7 @@ void Client::Initialise(ByteString proxyString)
 	}
 	alternateVersionCheckRequest->Start();
 #endif
+	*/
 }
 
 bool Client::IsFirstRun()
@@ -153,6 +161,7 @@ bool Client::IsFirstRun()
 	return firstRun;
 }
 
+#if FALSE
 bool Client::DoInstallation()
 {
 #if defined(WIN)
@@ -431,6 +440,7 @@ bool Client::DoInstallation()
 	return false;
 #endif
 }
+#endif
 
 std::vector<ByteString> Client::DirectorySearch(ByteString directory, ByteString search, ByteString extension)
 {
@@ -533,6 +543,7 @@ bool Client::WriteFile(std::vector<unsigned char> fileData, ByteString filename)
 		{
 			fileStream.write((char*)&fileData[0], fileData.size());
 			fileStream.close();
+			EM_ASM(Module.syncfs());
 		}
 		else
 			saveError = true;
@@ -706,6 +717,7 @@ RequestStatus Client::ParseServerReturn(ByteString &result, int status, bool jso
 
 void Client::Tick()
 {
+	/*
 	if (versionCheckRequest)
 	{
 		if (CheckUpdate(versionCheckRequest, true))
@@ -716,8 +728,10 @@ void Client::Tick()
 		if (CheckUpdate(alternateVersionCheckRequest, false))
 			alternateVersionCheckRequest = nullptr;
 	}
+	*/
 }
 
+#if FALSE
 bool Client::CheckUpdate(http::Request *updateRequest, bool checkSession)
 {
 	//Check status on version check request
@@ -841,6 +855,7 @@ void Client::notifyUpdateAvailable()
 		(*iterator)->NotifyUpdateAvailable(this);
 	}
 }
+#endif
 
 void Client::notifyMessageOfTheDay()
 {
@@ -910,11 +925,13 @@ void Client::WritePrefs()
 		configFile << preferences;
 
 		configFile.close();
+		EM_ASM(Module.syncfs());
 	}
 }
 
 void Client::Shutdown()
 {
+	/*
 	if (versionCheckRequest)
 	{
 		versionCheckRequest->Cancel();
@@ -923,8 +940,9 @@ void Client::Shutdown()
 	{
 		alternateVersionCheckRequest->Cancel();
 	}
+	*/
 	
-	http::RequestManager::Ref().Shutdown();
+	// http::RequestManager::Ref().Shutdown();
 
 	//Save config
 	WritePrefs();
@@ -1118,6 +1136,7 @@ void Client::updateStamps()
 	}
 	stampsStream.write("\0", 1);
 	stampsStream.close();
+	EM_ASM(Module.syncfs());
 	return;
 }
 

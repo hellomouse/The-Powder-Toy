@@ -1,6 +1,10 @@
 #pragma once
 
-void EngineProcess();
+// void EngineProcess();
+extern "C" {
+    void Shutdown();
+}
+void EmscriptenShutdown();
 void ClipboardPush(ByteString text);
 ByteString ClipboardPull();
 int GetModifiers();

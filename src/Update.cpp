@@ -1,3 +1,5 @@
+// can't do this in emscripten
+#if FALSE
 #include <cstdio>
 #include <cstdlib>
 #ifndef WIN
@@ -150,3 +152,4 @@ void update_cleanup()
 	update_finish();
 #endif
 }
+#endif

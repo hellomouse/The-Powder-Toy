@@ -19,7 +19,7 @@
 #include "gui/elementsearch/ElementSearchActivity.h"
 #include "gui/profile/ProfileActivity.h"
 #include "gui/colourpicker/ColourPickerActivity.h"
-#include "gui/update/UpdateActivity.h"
+// #include "gui/update/UpdateActivity.h"
 #include "Notification.h"
 #include "gui/filebrowser/FileBrowserActivity.h"
 #include "gui/save/LocalSaveActivity.h"
@@ -342,6 +342,7 @@ void GameController::PlaceSave(ui::Point position, bool includePressure)
 	}
 }
 
+#if FALSE
 void GameController::Install()
 {
 #if defined(MACOSX)
@@ -371,6 +372,7 @@ void GameController::Install()
 	new ErrorMessage("Cannot install", "You cannot install The Powder Toy on this platform");
 #endif
 }
+#endif
 
 void GameController::AdjustGridSize(int direction)
 {
@@ -847,7 +849,7 @@ void GameController::Tick()
 #ifdef LUACONSOLE
 		((LuaScriptInterface*)commandInterface)->Init();
 #endif
-#if !defined(MACOSX) && !defined(NO_INSTALL_CHECK)
+#if !defined(MACOSX) && !defined(NO_INSTALL_CHECK) && FALSE
 		if (Client::Ref().IsFirstRun())
 		{
 			Install();
@@ -1646,6 +1648,7 @@ void GameController::NotifyNewNotification(Client * sender, std::pair<String, By
 	gameModel->AddNotification(new LinkNotification(notification.second, notification.first));
 }
 
+#if FALSE
 void GameController::NotifyUpdateAvailable(Client * sender)
 {
 	class UpdateConfirmation: public ConfirmDialogueCallback {
@@ -1724,12 +1727,14 @@ void GameController::NotifyUpdateAvailable(Client * sender)
 			break;
 	}
 }
+#endif
 
 void GameController::RemoveNotification(Notification * notification)
 {
 	gameModel->RemoveNotification(notification);
 }
 
+#if FALSE
 void GameController::RunUpdater()
 {
 #ifndef MACOSX
@@ -1746,3 +1751,4 @@ void GameController::RunUpdater()
 	Platform::OpenURI(file);
 #endif // MACOSX
 }
+#endif
