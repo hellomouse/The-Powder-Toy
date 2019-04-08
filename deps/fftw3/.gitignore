@@ -1,0 +1,37 @@
+*.tar.gz
+*.exe
+*.dll
+*.do
+*.o
+*.lo
+*.a
+*.la
+*.dylib
+*.dSYM
+*.zip
+*.native
+*~
+*.js
+*.bc
+a.out
+_build
+
+# other build products
+tests/bench
+tools/fftw-wisdom
+tools/fftw-wisdom-to-conf
+tools/fftw-wisdom.1
+tools/fftw_wisdom.1
+doc/FAQ/html.refs2
+doc/FAQ/*.info
+doc/FAQ/*.xrefdb
+doc/*.t2p
+
+# autotools stuff
+Makefile
+.deps
+.libs
+stamp-h1
+libtool
+autom4te.cache
+py-compile
