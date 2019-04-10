@@ -6,6 +6,10 @@
 #include "common/tpt-thread.h"
 // #include <curl/curl.h>
 #include "common/String.h"
+
+// stupid circular dependencies
+namespace http { class Request; };
+#include "RequestWorker.h"
 #undef GetUserName // pthreads defines this, breaks stuff
 
 /*
@@ -23,23 +27,34 @@ namespace http
 	// class RequestManager;
 	class Request
 	{
+		struct Header {
+			ByteString name;
+			ByteString value;
+		};
+
 		ByteString uri;
 		ByteString response_body;
 
 		// CURL *easy;
 		// char error_buffer[CURL_ERROR_SIZE];
 
-		// volatile curl_off_t rm_total;
-		// volatile curl_off_t rm_done;
+		volatile uint32_t rm_total;
+		volatile uint32_t rm_done;
 		volatile bool rm_finished;
 		volatile bool rm_canceled;
 		volatile bool rm_started;
-		// pthread_mutex_t rm_mutex;
+		pthread_mutex_t rm_mutex;
+		pthread_cond_t done_cv;
 
-		// bool added_to_multi;
+		// used to identify this specific request across the c++/js boundary
+		// -2 means not added (or removed) to RequestWorker
+		// -1 means queued
+		// >= 0 means currently processing
+		uint32_t id;
 		int status;
 
-		// struct curl_slist *headers;
+		std::vector<Header> headers;
+		std::map<ByteString, ByteString> post_fields;
 
 /*
 #ifdef REQUEST_USE_CURL_MIMEPOST
@@ -50,9 +65,7 @@ namespace http
 #endif
 */
 
-		pthread_cond_t done_cv;
-
-		static size_t WriteDataHandler(char * ptr, size_t size, size_t count, void * userdata);
+		// static size_t WriteDataHandler(char * ptr, size_t size, size_t count, void * userdata);
 
 	public:
 		Request(ByteString uri);
@@ -71,7 +84,7 @@ namespace http
 		bool CheckCanceled();
 		bool CheckStarted();
 
-		// friend class RequestManager;
+		friend class RequestWorker;
 
 		static ByteString Simple(ByteString uri, int *status, std::map<ByteString, ByteString> post_data = std::map<ByteString, ByteString>{});
 		static ByteString SimpleAuth(ByteString uri, int *status, ByteString ID, ByteString session, std::map<ByteString, ByteString> post_data = std::map<ByteString, ByteString>{});
@@ -79,9 +92,9 @@ namespace http
 
 	String StatusText(int code);
 
-	extern const long timeout;
-	extern ByteString proxy;
-	extern ByteString user_agent;
+	// extern const long timeout;
+	// extern ByteString proxy;
+	// extern ByteString user_agent;
 }
 
 #endif // REQUEST_H

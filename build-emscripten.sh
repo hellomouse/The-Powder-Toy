@@ -14,13 +14,13 @@ export EMCC_CORES=$PARALLEL
 OPT="-O3"
 mkdir -p emscripten-build
 # for uber-debug: -s ASSERTIONS=2 -s SAFE_HEAP=1
-EMCC_FLAGS="-s WASM=1 -s FETCH=1 -s USE_SDL=2 -s TOTAL_MEMORY=$MEMORY \
+EMCC_FLAGS="-s WASM=1 -s USE_SDL=2 -s TOTAL_MEMORY=$MEMORY \
     -s USE_PTHREADS=1 -s DEMANGLE_SUPPORT=1 $OPT"
 # removing gravfft because fftw3f seems very slow (-DGRAVFFT)
 CFLAGS="$EMCC_FLAGS -ftree-vectorize \
     -funsafe-math-optimizations -ffast-math -fomit-frame-pointer \
     -Wno-invalid-offsetof \
-    -D_64BIT -D_REENTRANT -DLUA_R_INCL -DLIN -DX86 -DLUACONSOLE -DGRAVFFT \
+    -D_REENTRANT -DLUA_R_INCL -DLIN -DX86 -DLUACONSOLE -DGRAVFFT \
     -D LUA_COMPAT_ALL \
     -Isrc -Idata -Igenerated \
     -Ideps/lua5.2/src -Ideps/bzip2 -Ideps/fftw3/api -Ideps/zlib"

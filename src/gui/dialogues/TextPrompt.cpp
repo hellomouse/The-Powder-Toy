@@ -80,7 +80,7 @@ TextPrompt::TextPrompt(String title, String message, String text, String placeho
 	MakeActiveWindow();
 }
 
-EM_JS(const char*, JSBlockingPrompt, (const char* message, const char* placeholder), {
+EM_JS(char*, JSBlockingPrompt, (const char* message, const char* placeholder), {
 	let result = window.prompt(UTF8ToString(message), UTF8ToString(placeholder));
 	let returnString;
 	if (!result) returnString = '';
@@ -118,7 +118,10 @@ String TextPrompt::Blocking(String title, String message, String text, String pl
 	// we can't exactly do multiline prompts, but none of the blocking TextPrompts use multiline
 	String prompt = title + "\n\n" + message;
 	if (placeholder.size()) prompt += "\n(" + placeholder + ")";
-	return ByteString(JSBlockingPrompt(prompt.ToUtf8().c_str(), text.ToUtf8().c_str())).FromUtf8();
+	char* out = JSBlockingPrompt(prompt.ToUtf8().c_str(), text.ToUtf8().c_str());
+	String ret = ByteString(out).FromUtf8();
+	free(out);
+	return ret;
 }
 
 void TextPrompt::OnDraw()

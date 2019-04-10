@@ -55,9 +55,6 @@ private:
 	pthread_t gravthread;
 	pthread_mutex_t gravmutex;
 	pthread_cond_t gravcv;
-	void mprint(const char* format, ...);
-	pthread_mutex_t log_mutex;
-	int gravUpdateLateFrames;
 	int grav_ready;
 	int gravthread_done;
 

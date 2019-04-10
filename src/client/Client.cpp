@@ -45,6 +45,7 @@
 #include "ClientListener.h"
 #include "client/http/Request.h"
 // #include "client/http/RequestManager.h"
+#include "client/http/RequestWorker.h"
 
 #include "json/json.h"
 
@@ -118,6 +119,9 @@ void Client::Initialise()
 	*/
 
 	// http::RequestManager::Ref().Initialise(proxyString);
+
+	// start the http request worker thread
+	http::RequestWorker::Ref();
 
 	//Read stamps library
 	std::ifstream stampsLib;
