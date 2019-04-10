@@ -309,9 +309,6 @@ namespace http {
                     // request already finished or cancelled
                     if (request->id < 0) break;
                     EM_ASM(Module.requestWorker.cancelRequest($0), id);
-                    request->id = -2;
-                    self->active_requests[id] = NULL;
-                    self->active_requests_full = self->dequeue_next(id, false);
                     break;
             }
             pthread_mutex_unlock(&request->rm_mutex);
