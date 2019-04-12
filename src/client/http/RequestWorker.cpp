@@ -7,6 +7,8 @@ namespace http {
     // javascript intensifies
     EM_JS(void, js_worker_init, (int maxRequests), {
         console.log('http::js_worker_init: initializing worker');
+        // temp workaround for chrome bug https://crbug.com/951413
+        new Blob(['init thread-local BlobRegistry']);
         if (Module.requestWorker) throw new Error('Request worker already exists?');
         Module.requestWorker = {
             Request: class Request {
