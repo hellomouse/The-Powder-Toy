@@ -7,10 +7,32 @@
         <title>The Powder Toy</title>
     </head>
     <body>
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" width="0" height="0"></canvas>
         <br>
         <div id="status"></div>
-        <script type='text/javascript'>
+        <div id="unsupported"></div>
+        <script type="text/javascript">
+        {
+            let messageElement = document.getElementById('unsupported');
+            if (typeof SharedArrayBuffer === 'undefined') {
+                // no shared memory support
+                messageElement.innerText = `Error: No shared memory support.
+If you are on Chrome, please go to chrome://flags/#shared-array-buffer and change the setting to "Enabled". If that setting does not exist, please update your browser.
+If you are on Firefox, please go to about:config, search for "javascript.options.shared_memory", and double-click the entry to toggle it. IF that setting does not exist, please update your browser.
+If you are on another browser, you will not be able to run this application. Consider downloading either Chrome or Firefox.`;
+            } else {
+                // check for webassembly threads support
+                let mem = new WebAssembly.Memory({ initial: 1, maximum: 1, shared: true });
+                if (!(mem.buffer instanceof SharedArrayBuffer)) {
+                    messageElement.innerText = `Error: No WebAssembly threads support.
+If you are on Chrome, please go to chrome://flags/#enable-webassembly-threads and change the setting to "Enabled". If that setting does not exist, please update your browser.
+If you are on Firefox, please update your browser.
+If you are on another browser, you will not be able to run this application. Consider downloading either Chrome or Firefox.`;
+                }
+            }
+        }
+        </script>
+        <script type="text/javascript">
         {
             let statusElement = document.getElementById('status');
             let canvas = document.getElementById('canvas');
